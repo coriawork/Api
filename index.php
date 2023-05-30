@@ -11,10 +11,12 @@ $app = AppFactory::create();
 
 /* $app->get('/generos/get/{genero}','\App\src\GenerosController:getGen'); */
 
-$app->get('/generos/list','\App\src\GenerosController:list');
+$app->get('/generos','\App\src\Models\GenerosController:list');
 
-$app->post('/generos', '\App\src\GenerosController:create');
+$app->post('/generos', '\App\src\Models\GenerosController:create');
 
-$app->put('/generos', '\App\src\GenerosController:update');
+$app->put('/generos', '\App\src\Models\GenerosController:update');
+
+$app->delete('/generos', '\App\src\Models\GenerosController:delete');
 
 $app->run();
