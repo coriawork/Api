@@ -21,11 +21,10 @@ class GenerosController{
         $db = new DB();
         try{
             $body = json_decode($request->getBody(), true);
+            if (!isset($body['id'])) throw new Exception("no se recibio el id a editar", 400);
+            if (!isset($body['nombre'])) throw new Exception("no se recibio el parametro", 400);
             $result = $db->makeQuery("SELECT * from generos where id = '" . $body['id'] . "'");
             if ($result->num_rows === 0) throw new Exception("No existe el id", 400);
-            if (!isset($body['id'])) throw new Exception("no se recibio el id a editar",400);
-            if (!isset($body['nombre'])) throw new Exception("no se recibio el parametro",400);
-
             $result = $db->makeQuery("UPDATE generos SET nombre='" . $body['nombre'] . "' WHERE id='" . $body['id'] . "'");
             var_dump($result);
             return $response->withStatus(200);
