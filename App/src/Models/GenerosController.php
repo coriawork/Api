@@ -3,37 +3,20 @@ namespace App\src\Models;
 use App\src\Models\DB;
 use Exception;
 
-class GenerosController{  
-    //* todos los generos
-    public function list($request, $response, $args)
-    {
-        $db = new DB();
-        try{
-            $generos = $db->makeQuery('SELECT * FROM generos')->fetch_all(MYSQLI_ASSOC);
-            //*forma de enviar las exepciones
-            if (sizeof($generos) === 0) {
-                throw new Exception("No hay generos", 404);
-            }
-            $response->getBody()->write(json_encode($generos));
-            return $response->withStatus(200);
-        }
-        catch(Exception $e){
-            $response->getBody()->write($e->getMessage());
-            return $response->withStatus(404);
-        }
-        //todo: catch pdo exception para la conexion de la base de datos
-    }
+class GenerosController{
     //*post 201 si se creo bien
 
-    //* crea un genero
-    public function create($request, $response, $args){
+    //* crea un genero (a)
+    public function create($request, $response, $args)
+    {
         $db = new DB();
         $nombre = json_decode($request->getBody(), true)['nombre'];
-        $db->makeQuery("INSERT INTO generos (nombre) VALUES ('".$nombre."')");
+        $db->makeQuery("INSERT INTO generos (nombre) VALUES ('" . $nombre . "')");
         return $response->withStatus(200);
     }
+  
 
-    //* actualizar genero con id
+    //* actualizar genero con id (b)
     public function update($request, $response, $args){
         $db = new DB();
         try{
@@ -60,6 +43,7 @@ class GenerosController{
             return $response->withStatus(400);
         }
     }
+    //*delete (c)
     public function delete($request, $response, $args){
         $db = new DB();
         try{
@@ -75,6 +59,24 @@ class GenerosController{
             $response->getBody()->write($e->getMessage());
             return $response->withStatus(400);
         }
+    }
+    //* todos los generos (d)
+    public function list($request, $response, $args)
+    {
+        $db = new DB();
+        try {
+            $generos = $db->makeQuery('SELECT * FROM generos')->fetch_all(MYSQLI_ASSOC);
+            //*forma de enviar las exepciones
+            if (sizeof($generos) === 0) {
+                throw new Exception("No hay generos", 404);
+            }
+            $response->getBody()->write(json_encode($generos));
+            return $response->withStatus(200);
+        } catch (Exception $e) {
+            $response->getBody()->write($e->getMessage());
+            return $response->withStatus(404);
+        }
+        //todo: catch pdo exception para la conexion de la base de datos
     }
 }
 ?>    
