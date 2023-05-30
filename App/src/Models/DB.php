@@ -16,5 +16,9 @@ class DB{
     public function close(){
         $this->con->close();
     }
+    public function ExistIn($table,$data){
+       if($this->makeQuery('SELECT id FROM ' . $table . ' WHERE id = ' . $data . '')->fetch_array()==null)return false;
+       return true;
+    }
 }
 ?>
