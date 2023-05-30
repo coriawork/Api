@@ -1,5 +1,6 @@
 <?php
-namespace App\src;
+
+namespace App\src\Models;
 class DB{
     private $root = 'localhost';
     private $user = 'root';
