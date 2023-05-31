@@ -2,14 +2,14 @@
 namespace App\src\Models;
 use PDO;
 use PDOStatement;
-class DB extends PDO{
+class DB extends PDO {
     private $host = 'localhost';
     private $user = 'root';
     private $pass = '';
     private $db = 'pagjuego';
     private $con;
     
-    public function __construct(){
+    public function __construct() {
         $dsn = "mysql:host=$this->host;dbname=$this->db;charset=utf8mb4";
         $options = [
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
@@ -18,7 +18,7 @@ class DB extends PDO{
         ];
         try {
             $this->con = new \PDO($dsn, $this->user, $this->pass, $options);
-	}
+	    }
        	catch (\PDOException $e) {
             throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }
@@ -28,14 +28,8 @@ class DB extends PDO{
         return $this->con->prepare($query, $options);
     }
 
-    public function execute(\PDOStatement $statement, array $parameters = []): bool {
-        return $statement->execute($parameters);
-    }
-
-    public function makeQuery($query, $params = []){
-        $stmt = $this->con->prepare($query);
-        $stmt->execute($params);
-        return $stmt;
+    public function execute(\PDOStatement $stmt, array $params = []): bool {
+        return $stmt->execute($params);
     }
     
     public function close(){
@@ -45,7 +39,12 @@ class DB extends PDO{
     public function existsIn($table, $data){
         $query = 'SELECT id FROM ' . $table . ' WHERE id = :data';
         $stmt = $this->makeQuery($query, [':data' => $data]);
-	return $stmt->fetch() !== false;
+        return $stmt->fetch() !== false;
 	}
+    public function makeQuery($query, $params = []){
+        $stmt = $this->con->prepare($query);
+        $stmt->execute($params);
+        return $stmt;
+    }
 }
 ?>
