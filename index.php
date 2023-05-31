@@ -23,6 +23,10 @@ $app->get('/plataformas', '\App\src\Models\PlataformaController:list');
 $app->put('/plataformas/{id}', '\App\src\Models\PlataformaController:update');
 $app->delete('/plataformas/{id}', '\App\src\Models\PlataformaController:delete');
 //endpoints Juegos
-//
+$app->post('/juegos', '\App\src\Models\JuegosController:create');
+$app->get('/juegos', '\App\src\Models\JuegosController:list');
+$app->put('/juegos/{id}', '\App\src\Models\JuegosController:update');
+$app->delete('/juegos/{id}', '\App\src\Models\JuegosController:delete');
+
 //
 $app->run();
