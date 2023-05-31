@@ -44,7 +44,7 @@ $app->get('/juegos', '\App\src\Models\JuegosController:list');
 /* m) Buscar juegos: implementar un endpoint que permita buscar juegos por nombre, plataforma y género. 
 El endpoint deberá aceptar un nombre, un id de género, un id de plataforma y un orden por nombre (ASC o DESC)*/
 
-$app->get('/juegos{nombre,id_genero,id_plataforma,orden}', '\App\src\Models\JuegosController:list');
+$app->get('/juegos/{nombre,id_genero,id_plataforma,orden}', '\App\src\Models\JuegosController:search');
 
 //
 $app->run();
