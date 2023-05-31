@@ -5,7 +5,7 @@ class DB{
     private $root = 'localhost';
     private $user = 'root';
     private $pass = '';
-    private $db = 'pagjuego';
+    private $db = 'juegos_online';
     private $con;
     public function __construct(){
         $this->con = mysqli_connect($this->root,$this->user,$this->pass,$this->db);
