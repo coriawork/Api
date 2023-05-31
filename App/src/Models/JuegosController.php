@@ -2,12 +2,11 @@
 namespace App\src\Models;
 use App\src\Models\DB;
 use Exception;
-use PDOStatement;
 
 class JuegosController{
     //*post 201 si se creo bien
 
-    //* crea un juego (a)
+    //* crea un juego
     public function create($request, $response, $args){
         $db = new DB();
         $body = json_decode($request->getBody(), true);
@@ -32,7 +31,7 @@ class JuegosController{
         }
     }
 
-    //* actualizar juego con id (b)
+    //* actualizar juego con id 
     public function update($request, $response, $args) {
         $db = new DB();
         try {
@@ -51,14 +50,14 @@ class JuegosController{
             $query .= " WHERE id = :id";
             $bindings[':id'] = $args['id'];
 
-            $db->makeQuery($query, $bindings);
+            $db->makeQuery($query, $bindings); //makeQuery prepara la $query y luego la ejecuta con los $bindings
         }
         catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
             return $response->withStatus($e->getCode());
         }
     }
-    //*delete (c)
+    //*delete
     public function delete($request, $response, $args){
         $db = new DB();
         try{
@@ -74,21 +73,45 @@ class JuegosController{
             return $response->withStatus(400);
         }
     }
-    //* todos los juegos (d)
+    // todos los juegos 
     public function list($request, $response, $args){
         $db = new DB();
         try {
             $juegos = $db->makeQuery('SELECT * FROM juegos')->fetchAll();
-            //*forma de enviar las exepciones
+            //forma de enviar las exepciones
             if (sizeof($juegos) === 0)throw new Exception("No hay juegos", 404);
             $response->getBody()->write(json_encode($juegos));
             return $response->withStatus(200);
-	} 
-	catch (Exception $e) {
+	    } 
+        catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
             return $response->withStatus(404);
         }
-        //todo: catch pdo exception para la conexion de la base de datos
+    }    
+    public function search($request, $response, $args)
+    {
+        $db = new DB();
+        try {
+            $body = json_decode($request->getBody(), true);
+            $query = "SELECT * FROM juegos WHERE ";
+            $bindings = [];
+            $length = count($body);
+            for ($i = 0; $i < $length - 1; $i++) {
+                $query .= "{$body[$i]} = :{$body[$i]}, ";
+                $bindings[":{$body[$i]}"] = $body[$i];
+            }
+            $query = rtrim($query, ', '); // remuevo la última coma de la query
+            $bindings[":{$body['orden']}"] = $body['orden'];
+            $query .= " ORDER BY {$lastValue}";
+    
+            $db->makeQuery($query, $bindings);
+    
+            return $response->withStatus(200);
+        } 
+        catch (Exception $e) {
+            $response->getBody()->write($e->getMessage());
+            return $response->withStatus(404);
+        }
     }
 }
 ?>    
