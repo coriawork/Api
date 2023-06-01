@@ -92,17 +92,15 @@ class PlataformaController{
             $datos = [];
             $query = "SELECT * FROM juegos WHERE 1=1 ";
             if($genero != null){
-                if(!$db->existsIn('generos',$genero))throw new Exception("el genero no existe",404); //no se si estas exepciones son necesarias o las debe enviar la base de datos
                 $query.="AND id_genero = ?";
                 array_push($datos,$genero);
             }
             if($nombre != null){
-                $query.="AND nombre like ?";
+                $query .= "AND nombre like ?";
+                $nombre = "%".$nombre."%";
                 array_push($datos, $nombre);
             }
             if($plataforma!= null){
-                if (!$db->existsIn('plataformas', $plataforma)) throw new Exception("la plataforma no existe", 404);
-
                 $query.="AND plataforma =?";
                 array_push($datos, $plataforma);
             }
@@ -116,7 +114,34 @@ class PlataformaController{
         catch(Exception $e){
             $response->getBody()->write($e->getMessage());
             $db->close();
+            return $response->withStatus(404);
+        }
+    }
+    public function createJuego($request, $response, $args)
+    {
+        $db = new DB();
+        $body = json_decode($request->getBody(), true);
+        try {
+        //!falta ver si se envian los id_genero y id_plataforma
+        if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'])) throw new Exception("no se recibieron todos los parametros", 400);
+        $params = array(
+            ':v1' => $body['nombre'],
+            ':v2' => $body['imagen'],
+            ':v3' => $body['tipo_imagen'],
+            ':v4' => $body['descripcion'],
+            ':v5' => $body['url'],
+            ':v6' => $body['id_genero'],
+            ':v7' => $body['id_plataforma']
+        );
+        
+        //!falta verificar que los ids plat y gen existan
+        $query = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, descripcion, url, id_genero, id_plataforma) VALUES (:v1,:v2,:v3,:v4,:v5,:v6,:v7)';
+        $db->makeQuery($query,$params);
+        return $response->withStatus(200);
+        } catch (Exception $e) {
+            $response->getBody()->write($e->getMessage());
             return $response->withStatus($e->getCode());
         }
     }
+
 }
