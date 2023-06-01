@@ -27,10 +27,12 @@ class GenerosController{
     //* crea un genero (a) --> ver README.md
     public function create(Request $request, Response $response, $args){
         $db = new DB();
-        $nombre = json_decode($request->getBody(), true)['nombre'];
+        $body = json_decode($request->getBody(), true);
+        if (!isset($body['nombre'])) throw new Exception("Error: Campos vacíos");
+        $nombre = $body['nombre'];
         $db->makeQuery("INSERT INTO generos (nombre) VALUES (?)", [$nombre]);
         $db->close();
-        $response->getBody()->write("Juego $nombre creado con éxito");
+        $response->getBody()->write("Genero $nombre creado con éxito");
         return $response->withStatus(200);
     }
 
@@ -65,6 +67,7 @@ class GenerosController{
             if (!$db->existsIn('generos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
             $db->makeQuery("DELETE FROM generos WHERE id = ?", [$args['id']]);
             $db->close();
+            $response->getBody()->write("Genero eliminado con éxito");
             return $response;
         }
         catch (Exception $e) {

@@ -27,13 +27,14 @@ class PlataformasController{
     //* crea un plataforma (a) --> ver README.md
     public function create(Request $request, Response $response, $args){
         $db = new DB();
-        $nombre = json_decode($request->getBody(), true)['nombre'];
+        $body = json_decode($request->getBody(), true);
+        if (!isset($body['nombre'])) throw new Exception("Error: Campos vacíos");
+        $nombre = $body['nombre'];
         $db->makeQuery("INSERT INTO plataformas (nombre) VALUES (?)", [$nombre]);
         $db->close();
-        $response->getBody()->write("Juego $nombre creado con éxito");
+        $response->getBody()->write("Plataforma $nombre creado con éxito");
         return $response->withStatus(200);
     }
-
     //* actualizar plataforma con id (b) --> ver README.md
     public function update(Request $request, Response $response, $args){
         $db = new DB();
@@ -65,6 +66,7 @@ class PlataformasController{
             if (!$db->existsIn('plataformas', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
             $db->makeQuery("DELETE FROM plataformas WHERE id = ?", [$args['id']]);
             $db->close();
+            $response->getBody()->write("Plataforma eliminada con éxito");
             return $response;
         }
         catch (Exception $e) {
