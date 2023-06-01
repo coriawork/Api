@@ -97,7 +97,6 @@ class JuegosController{
                 $err3 = "La url debe de ser de menos de 88 caracteres";
                 $huboErr =true;
             }
-    
             if (empty($body['plataforma'])) {
                 $err4 = "Campo plataforma requerido";
                 $huboErr = true;
@@ -123,7 +122,7 @@ class JuegosController{
             }
             /* Caso contrario, mensaje en body de que se validó bien*/
             else {
-                $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos.");
+                $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la creación...");
             }
         }
         $db = new DB();
@@ -131,7 +130,7 @@ class JuegosController{
         try {
             // Preguntamos si estan los parámetros obligatorios antes de validar            
             if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'], $body['id_genero'], $body['id_plataforma'])) throw new Exception("Faltan parámetros", 400);
-            validarCreacionJuego($body, $response)
+            validarCreacionJuego($body, $response);
             $params = array(
                 ':v1' => $body['nombre'],
                 ':v2' => $body['imagen'],
@@ -167,18 +166,49 @@ class JuegosController{
                 id_plataforma: id de plataforma existente
         */
         function validarArgsUpdate($args, $db) {
-            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
+            /*Se validan los argumentos chequeando que:
+            -Se recibió el id como argumento.
+            -El id es numerico.
+            */
             if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
-            if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
         }
-        function validarUpdateJuego () {
-            
+        function validarUpdateJuego ($db, $body, $response, $args) {
+            $huboErr = false;
+            if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
+            if (strlen($body["descripcion"]) > 255) {
+                $err2 = "La descripcion debe de ser de menos de 255 caracteres";
+                $huboErr =true;
+            }
+            if (strlen($body["url"]) > 88) {
+                $err3 = "La url debe de ser de menos de 88 caracteres";
+                $huboErr =true;
+            if(empty($body['imagen']))
+                $err4 = "No ingresó ninguna imagen en base64. Campo vacío.";
+                $huboErr = true;
+            }
+            if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) {
+                $err5 = "El archivo no es un formato de imagen válido. Solo se permite 'jpg' y 'png'";
+                $huboErr = true;
+            }
+            /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
+            if ($huboErr) {
+                $errors = ($err2.','.$err3 .','.$err4.','.$err5);
+                //$response->getBody()->write($errors);
+                //$response->withStatus(400);
+                throw new Exception($errors, 400);
+            }
+            /* Caso contrario, mensaje en body de que se validó bien*/
+            else {
+                $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la actualización...");
+            }
         }
         $db = new DB();
-        validarArgsUpdate($args, $db)
+        validarArgsUpdate($args, $db);
         $body = json_decode($request->getBody(), true);
+        validarUpdateJuego($db, $body, $response, $args);
         try {
-            $query = "UPDATE juegos SET "; // vamos a ir generando la query de a partes
+            $query = "UPDATE juegos SET ";
             $bindings = [];
             foreach ($body as $field => $value) { //este for each mapea bindings con campos ingresados 
                 $query .= "$field = :$field, ";
@@ -187,7 +217,7 @@ class JuegosController{
             $query = rtrim($query, ', '); // elimina la última coma de la query agregada en la última iteración del foreach
             $query .= " WHERE id = :id";
             $bindings[':id'] = $args['id'];
-            $db->makeQuery($query, $bindings)->fetchAll(); //makeQuery prepara la $query y luego la ejecuta con los $bindings
+            $db->makeQuery($query, $bindings)->fetchAll();
             $response->getBody()->write("Se actualizo bien");
             return $response->withStatus(200);
         } 
@@ -197,13 +227,17 @@ class JuegosController{
         }
     }
     public function delete($request, $response, $args){
-        $db = new DB();
-        try {
-            $body = json_decode($request->getBody(), true);
+        function validarDelete($args, $db, $body) {
             $result = $db->makeQuery("SELECT * from juegos where id = '" . $body['id'] . "'");
             if($result->rowCount() === 0) throw new Exception("No existe el id", 400);
             if (!isset($body['id'])) throw new Exception("No se recibio el id", 400);
-            $result = $db->makeQuery("DELETE FROM juegos where id = '".$body['id']."'");
+        }
+
+        $db = new DB();
+        $body = json_decode($request->getBody(), true);
+        validarDelete($args, $db, $body);
+        try {
+            $db->makeQuery("DELETE FROM juegos where id = '".$body['id']."'");
             return $response;
         }
         catch (Exception $e) {
