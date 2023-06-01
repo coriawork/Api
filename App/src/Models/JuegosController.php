@@ -1,5 +1,7 @@
 <?php
 namespace App\src\Models;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use App\src\Models\DB;
 use Exception;
 
