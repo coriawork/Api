@@ -67,20 +67,60 @@ class JuegosController{
         Respeta y valida las condiciones previamente establecidas en la Entrega nº1 en cuanto
         a la creación de un nuevo juego vía formulario de html.
         Por tanto, es obligatorio que la request contenga los siguientes campos:
-            nombre(str),
-            imagen(blob en base64),
-            tipo_imagen(str): debe ingresarse un tipo válido,
-            id_plataforma(int): debe ser un id válido de una plataforma existente
+        nombre(str),
+        imagen(blob en base64),
+        tipo_imagen(str): debe ingresarse un tipo válido,
+        id_plataforma(int): debe ser un id válido de una plataforma existente
         Los siguientes campos son opcionales:
-            descripcion(str): no más de 255 caracteres
-            url(str): no más de 80 caracteres
-            id_genero(): debe ser un id válido de un genero existente
+        descripcion(str): no más de 255 caracteres
+        url(str): no más de 88 caracteres
+        id_genero(): debe ser un id válido de un genero existente
         Si la creación del juego es exitosa se imprime un mensaje junto con un Status200 en la response.
         */
         $db = new DB();
         $body = json_decode($request->getBody(), true);
         try {
-            if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'], $body['id_genero'], $body['id_plataforma'])) throw new Exception("no se recibieron todos los parametros", 400);
+// Preguntamos si estan los parámetros obligatorios antes de validar            
+            if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'], $body['id_genero'], $body['id_plataforma'])) throw new Exception("Faltan parámetros", 400);
+            function validate($body) {
+                /*
+                Esta función recibe el cuerpo de la request y devuelve si hubo o no hubo errores en la validación
+                */
+                $huboErr =false;
+                if(empty($body['name'])){
+                    $err1 = "Campo nombre requerido ";
+                    $huboErr =true;
+                }
+                if (strlen($body["descripcion"]) > 255) {
+                    $err2 = "La descripcion debe de ser de menos de 255 caracteres";
+                    $huboErr =true;
+                }
+                if (strlen($body["url"]) > 88) {
+                    $err3 = "La url debe de ser de menos de 88 caracteres";
+                    $huboErr =true;
+                }
+
+                if (empty($body['plataforma'])) {
+                    $err4 = "Campo plataforma requerido";
+                    $huboErr = true;
+                }
+                if (empty($body['genero'])) {
+                    $err6 = "Campo plataforma requerido";
+                    $huboErr = true;
+                }
+                if($body["imagen"] == 0){
+                    $err4 = "La imagen es un campo requerido";
+                    $huboErr = true;
+                }
+                if(!exif_imagetype($_FILES['imagen']['tmp_name'])){
+                    $err5 = "el archivo no es un formato de imagen";
+                    $huboErr = true;
+                }
+                if($huboErr){
+                    $_SESSION['error_message'] = $err1.','.$err2.','.$err3 .','.$err4.','.$err5 . ',' . $err6. ',';
+                    header("Location: formJuego.php");
+                }
+            };
             $params = array(
                 ':v1' => $body['nombre'],
                 ':v2' => $body['imagen'],
@@ -93,17 +133,28 @@ class JuegosController{
             
             $query = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, descripcion, url, id_genero, id_plataforma) VALUES (:v1,:v2,:v3,:v4,:v5,:v6,:v7)';
             $db->makeQuery($query,$params);
-            return $response->withStatus(200);
-        }
+            $response->getBody()->write("Se actualizo bien");
+            return $response->withStatus(200);        }
         catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
             return $response->withStatus($e->getCode());
         }
     }
 
-    //* actualizar juego con id 
-    public function updateJuegos($request, $response, $args)
-    {
+    public function updateJuegos($request, $response, $args) {
+        /*
+        Esta función recibe un PUT request con un id de juego y con parámetros para actualizarlo.
+        Son obligatorios:
+            args: id(int)
+            body: es obligatorio al menos uno de los siguientes campos:
+                nombre(str),
+                imagen(blob en base64),
+                tipo_imagen(str): solo tipo de imagenes validas como .jpg o .png,
+                descripcion(str): no más de 255 char,
+                url(str): no más de 80 char,
+                id_genero: id de genero existente,
+                id_plataforma: id de plataforma existente
+        */
         $db = new DB();
         try {
             if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
