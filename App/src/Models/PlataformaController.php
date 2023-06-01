@@ -65,7 +65,8 @@ class PlataformaController{
             if (!isset($args['id'])) throw new Exception("no se recibió el id para hacer el delete", 400);
             if (!$db->existsIn('plataformas', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
             
-            $db->makeQuery("DELETE FROM plataformas WHERE id = ?", [$args['id']]);
+            $resul =$db->makeQuery("DELETE FROM plataformas WHERE id = ?", [$args['id']])->fetchAll();
+
             $db->close();
             return $response->withStatus(200);
         } catch (Exception $e) {
@@ -81,7 +82,6 @@ class PlataformaController{
         return $response->withStatus(200);
     }
     public function juegos(Request $request, Response $response, $args){
-        $parms = $request->getQueryParams();
         $db = new DB();
         try{
             $genero = $request->getQueryParams()['genero'] ?? null;
@@ -123,7 +123,7 @@ class PlataformaController{
         $body = json_decode($request->getBody(), true);
         try {
         //!falta ver si se envian los id_genero y id_plataforma
-        if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'])) throw new Exception("no se recibieron todos los parametros", 400);
+        if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'], $body['id_genero'], $body['id_plataforma'])) throw new Exception("no se recibieron todos los parametros", 400);
         $params = array(
             ':v1' => $body['nombre'],
             ':v2' => $body['imagen'],
@@ -134,13 +134,39 @@ class PlataformaController{
             ':v7' => $body['id_plataforma']
         );
         
-        //!falta verificar que los ids plat y gen existan
+        //!falta validar los datos (tipo de imagen,cant char, obligatorios)
         $query = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, descripcion, url, id_genero, id_plataforma) VALUES (:v1,:v2,:v3,:v4,:v5,:v6,:v7)';
         $db->makeQuery($query,$params);
         return $response->withStatus(200);
         } catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
             return $response->withStatus($e->getCode());
+        }
+    }
+    public function updateJuegos($request, $response, $args)
+    {
+        $db = new DB();
+        try {
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
+            if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
+            if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
+            $body = json_decode($request->getBody(), true);
+            $query = "UPDATE juegos SET "; // vamos a ir generando la query de a partes
+            $bindings = [];
+            foreach ($body as $field => $value) { //este for each mapea bindings con campos ingresados 
+                $query .= "$field = :$field, ";
+                $bindings[":$field"] = $value;
+            }
+            $query = rtrim($query, ', '); // elimina la última coma de la query agregada en la última iteración del foreach
+            $query .= " WHERE id = :id";
+            $bindings[':id'] = $args['id'];
+            $db->makeQuery($query, $bindings)->fetchAll(); //makeQuery prepara la $query y luego la ejecuta con los $bindings
+            $response->getBody()->write("Se actualizo bien");
+            return $response->withStatus(200);
+        } 
+        catch (Exception $e) {
+            $response->getBody()->write($e->getMessage());
+            return $response->withStatus(404);
         }
     }
 

@@ -24,5 +24,6 @@ $app->delete('/plataformas/{id}', '\App\src\Models\PlataformaController:delete')
 //pruebaJuegos
 $app->get('/juegosall', '\App\src\Models\PlataformaController:juegosAll');
 $app->get('/juegos', '\App\src\Models\PlataformaController:juegos');
-$app->post('/juegos/create', '\App\src\Models\PlataformaController:createJuego');
+$app->post('/juegos', '\App\src\Models\PlataformaController:createJuego');
+$app->put('/juegos/{id}', '\App\src\Models\PlataformaController:updateJuegos');
 $app->run();

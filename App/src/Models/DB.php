@@ -31,7 +31,7 @@ class DB{
     }
     
     public function close(){
-        unset($this->con);
+        $this->con = null;
     }
     
     public function existsIn($table, $data){
