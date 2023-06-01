@@ -31,10 +31,6 @@ Endpoint para actualizar la información de un género por id existente.
 
 Parámetros obligatorios:
 - id(int): id de genero existente recibido como argumento.
-► Al menos un parámetro opcional.
-
-Parámetros opcionales (campos a actualizar):
-- id(int)
 - nombre(str)
 
 ### Eliminar genero ###

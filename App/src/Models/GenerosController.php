@@ -15,12 +15,13 @@ class GenerosController{
             $response->getBody()->write(json_encode($generos));
             $db->close();
             return $response->withStatus(200);
-        } catch (Exception $e) {
+        } 
+        catch (Exception $e) {
+            $response->getBody()->write("Su solicitud arrojó un error: ");
             $response->getBody()->write($e->getMessage());
             $db->close();
             return $response->withStatus(404);
         }
-        //todo: catch PDOException para la conexión de la base de datos
     }
 
     //* crea un genero (a) --> ver README.md
@@ -36,21 +37,21 @@ class GenerosController{
     //* actualizar genero con id (b) --> ver README.md
     public function update(Request $request, Response $response, $args){
         $db = new DB();
-        try{
-            print_r($args);
+        try {
             if (!isset($args['id'])) throw new Exception("No se recibió el id para hacer el update", 400);
             if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
             if (!$db->existsIn('generos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
-
             $body = json_decode($request->getBody(), true);
-            if (!isset($body['nombre'])) throw new Exception("no se recibió el parámetro para el update", 400);
+            if (!isset($body['nombre'])) throw new Exception("No ingresó el nombre del genero a actualizar", 400);
             $db->makeQuery("UPDATE generos SET nombre = ? WHERE id = ?", [$body['nombre'], $args['id']]);
             $db->close();
+            $response->getBody()->write("Genero actualizado con éxito");
             return $response->withStatus(200);
         }
-        catch(Exception $e){
-            $response->getBody()->write($e->getMessage());
+        catch (Exception $e) {
             $db->close();
+            $response->getBody()->write("Su solicitud arrojó un error: ");
+            $response->getBody()->write($e->getMessage());
             return $response->withStatus($e->getCode());
         }
     }
@@ -58,17 +59,18 @@ class GenerosController{
     //* delete (c)
     public function delete(Request $request, Response $response, $args){
         $db = new DB();
-        try{
-            $body = json_decode($request->getBody(), true);
-            if (!isset($body['id'])) throw new Exception("No se recibió el id", 400);
-            if (!$db->existsIn('generos', $body['id'])) throw new Exception("No existe el id", 404);
-            $db->makeQuery("DELETE FROM generos WHERE id = ?", [$body['id']]);
+        try {
+            if (!isset($args['id'])) throw new Exception("No se recibió el id", 400);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
+            if (!$db->existsIn('generos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
+            $db->makeQuery("DELETE FROM generos WHERE id = ?", [$args['id']]);
             $db->close();
             return $response;
         }
-        catch(Exception $e){
-            $response->getBody()->write($e->getMessage());
+        catch (Exception $e) {
             $db->close();
+            $response->getBody()->write("Su solicitud arrojó un error: ");
+            $response->getBody()->write($e->getMessage());
             return $response->withStatus(400);
         }
     }
