@@ -15,9 +15,9 @@ La API retorna asimismo mensajes específicos que dan cuenta acerca de si la pet
 
 ## Endpoints ##
 
-### Crear generos ###
+### Crear genero ###
 
-GET `/generos`
+POST `/generos`
 
 Endpoint para crear un nuevo genero en la tabla de géneros. 
 Parámetros obligatorios:
@@ -27,11 +27,11 @@ Parámetros obligatorios:
 
 PUT `/generos/{id}`
 
-Endpoint para actualizar la información de un género existente en la tabla de géneros.
+Endpoint para actualizar la información de un género por id existente.
 
 Parámetros obligatorios:
-- id(int): id de genero existente.
-- Al menos un parámetro opcional.
+- id(int): id de genero existente recibido como argumento.
+► Al menos un parámetro opcional.
 
 Parámetros opcionales (campos a actualizar):
 - id(int)

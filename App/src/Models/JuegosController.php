@@ -7,7 +7,7 @@ use Exception;
 
 class JuegosController{
 
-    public function juegosAll($request, $response, $args){
+    public function juegosAll(Request $request, Response $response, $args){
         /*
         Esta funcion recibe un get request y devuelve todos los juegos
         */
@@ -62,7 +62,7 @@ class JuegosController{
             return $response->withStatus(404);
         }
     }
-    public function createJuego ($request, $response, $args) {
+    public function createJuego (Request $request, Response $response, $args) {
         /*
         Esta función recibe un POST request para agregar un juego nuevo.
         Respeta y valida las condiciones previamente establecidas en la Entrega nº1 en cuanto
@@ -78,7 +78,7 @@ class JuegosController{
             id_genero(): debe ser un id válido de un genero existente.
         Si la creación del juego es exitosa se imprime un mensaje junto con un Status200 en la response.
         */
-        function validarCreacionJuego($body, $response) {
+        function validarCreacionJuego($body, $res) {
             /*
             Esta función recibe el cuerpo de la request. Imprime mensajes indicando si hubo o no hubo errores en la validación.
             Es una función local que solo se debe invocar cuando se crea un juego, por eso el alcance otorgado.
@@ -116,13 +116,13 @@ class JuegosController{
             /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
             if ($huboErr) {
                 $errors = ($err1.','.$err2.','.$err3 .','.$err4.','.$err5 . ',' . $err6. ',');
-                //$response->getBody()->write($errors);
-                //$response->withStatus(400);
+                //$res->getBody()->write($errors);
+                //$res->withStatus(400);
                 throw new Exception($errors, 400);
             }
             /* Caso contrario, mensaje en body de que se validó bien*/
             else {
-                $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la creación...");
+                $res->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la creación...");
             }
         }
         $db = new DB();
@@ -151,7 +151,7 @@ class JuegosController{
         }
     }
 
-    public function updateJuegos($request, $response, $args) {
+    public function updateJuegos (Request $request, Response $response, $args) {
         /*
         Esta función recibe un PUT request con un id de juego y con parámetros para actualizarlo.
         Son obligatorios:
@@ -165,7 +165,7 @@ class JuegosController{
                 id_genero: id de genero existente,
                 id_plataforma: id de plataforma existente
         */
-        function validarArgsUpdate($args, $db) {
+        function validarArgsUpdate($args) {
             /*Se validan los argumentos chequeando que:
             -Se recibió el id como argumento.
             -El id es numerico.
@@ -173,7 +173,7 @@ class JuegosController{
             if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
             if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
         }
-        function validarUpdateJuego ($db, $body, $response, $args) {
+        function validarUpdateJuego ($db, $body, $res, $args) {
             $huboErr = false;
             if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
             if (strlen($body["descripcion"]) > 255) {
@@ -194,17 +194,17 @@ class JuegosController{
             /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
             if ($huboErr) {
                 $errors = ($err2.','.$err3 .','.$err4.','.$err5);
-                //$response->getBody()->write($errors);
-                //$response->withStatus(400);
+                //$res->getBody()->write($errors);
+                //$res->withStatus(400);
                 throw new Exception($errors, 400);
             }
             /* Caso contrario, mensaje en body de que se validó bien*/
             else {
-                $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la actualización...");
+                $res->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la actualización...");
             }
         }
         $db = new DB();
-        validarArgsUpdate($args, $db);
+        validarArgsUpdate($args);
         $body = json_decode($request->getBody(), true);
         validarUpdateJuego($db, $body, $response, $args);
         try {

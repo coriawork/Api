@@ -1,26 +1,45 @@
 <?php
 namespace App\src\Models;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use App\src\Models\DB;
 use Exception;
 
 class GenerosController{
-    //*post 201 si se creó correctamente
+    //* todos los generos (d) --> ver README.md
+    public function list(Request $request, Response $response, $args){
+        $db = new DB();
+        try {
+            $generos = $db->makeQuery('SELECT * FROM generos')->fetchAll();
+            if (count($generos) === 0) throw new Exception("No hay generos", 404);
+            $response->getBody()->write(json_encode($generos));
+            $db->close();
+            return $response->withStatus(200);
+        } catch (Exception $e) {
+            $response->getBody()->write($e->getMessage());
+            $db->close();
+            return $response->withStatus(404);
+        }
+        //todo: catch PDOException para la conexión de la base de datos
+    }
 
-    //* crea un genero (a)
-    public function create($request, $response, $args){
+    //* crea un genero (a) --> ver README.md
+    public function create(Request $request, Response $response, $args){
         $db = new DB();
         $nombre = json_decode($request->getBody(), true)['nombre'];
         $db->makeQuery("INSERT INTO generos (nombre) VALUES (?)", [$nombre]);
         $db->close();
-        return $response->withStatus(201);
+        $response->getBody()->write("Juego $nombre creado con éxito");
+        return $response->withStatus(200);
     }
 
-    //* actualizar genero con id (b)
-    public function update($request, $response, $args){
+    //* actualizar genero con id (b) --> ver README.md
+    public function update(Request $request, Response $response, $args){
         $db = new DB();
         try{
-            if (!is_numeric($args['id'])) throw new Exception("el id debe ser numérico", 400);
-            if (!isset($args['id'])) throw new Exception("no se recibió el id para hacer el update", 400);
+            print_r($args);
+            if (!isset($args['id'])) throw new Exception("No se recibió el id para hacer el update", 400);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
             if (!$db->existsIn('generos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
 
             $body = json_decode($request->getBody(), true);
@@ -37,7 +56,7 @@ class GenerosController{
     }
     
     //* delete (c)
-    public function delete($request, $response, $args){
+    public function delete(Request $request, Response $response, $args){
         $db = new DB();
         try{
             $body = json_decode($request->getBody(), true);
@@ -52,22 +71,5 @@ class GenerosController{
             $db->close();
             return $response->withStatus(400);
         }
-    }
-    
-    //* todos los generos (d)
-    public function list($request, $response, $args){
-        $db = new DB();
-        try {
-            $generos = $db->makeQuery('SELECT * FROM generos')->fetchAll();
-            if (count($generos) === 0) throw new Exception("No hay generos", 404);
-            $response->getBody()->write(json_encode($generos));
-            $db->close();
-            return $response->withStatus(200);
-        } catch (Exception $e) {
-            $response->getBody()->write($e->getMessage());
-            $db->close();
-            return $response->withStatus(404);
-        }
-        //todo: catch PDOException para la conexión de la base de datos
     }
 }
