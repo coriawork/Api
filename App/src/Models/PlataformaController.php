@@ -1,5 +1,7 @@
 <?php
 namespace App\src\Models;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use App\src\Models\DB;
 use Exception;
 
@@ -70,6 +72,51 @@ class PlataformaController{
             $response->getBody()->write($e->getMessage());
             $db->close();
             return $response->withStatus($e->getCode());
+        }
+    }
+    public function juegosAll($request, $response, $args){
+        $db = new DB();
+        $respuesta = $db->makeQuery('SELECT * FROM juegos')->fetchAll();
+        $response->getBody()->write(json_encode($respuesta));
+        return $response->withStatus(200);
+    }
+    public function juegos(Request $request, Response $response, $args){
+        $parms = $request->getQueryParams();
+        $db = new DB();
+        try{
+            $generos = $request->getQueryParams()['generos'] ?? null;
+            $nombre = $request->getQueryParams()['nombre'] ?? null;
+            $plataforma = $request->getQueryParams()['plataforma'] ?? null;
+            if ($generos === null && $plataforma === null && $nombre === null) throw new Exception("se debe dar un parametro (genero o plataforma o nombre)", 400);
+            $asc = $request->getQueryParams()['asc']?? false;
+            $datos = [];
+            $query = "SELECT * FROM juegos WHERE 1=1 ";
+            if($generos != null){
+                if(!$db->existsIn('generos',$generos))throw new Exception("el genero no existe",400); //no se si estas exepciones son necesarias o las debe enviar la base de datos
+                $query.="AND id_genero = ?";
+                array_push($datos,$generos);
+            }
+            if($nombre != null){
+                $query.="AND nombre like ?";
+                array_push($datos, $nombre);
+            }
+            if($plataforma!= null){
+                if (!$db->existsIn('plataformas', $plataforma)) throw new Exception("la plataforma no existe", 400);
+
+                $query.="AND plataforma =?";
+                array_push($datos, $plataforma);
+            }
+            if($asc)$query.=" ORDER BY nombre ASC ";
+            echo $query;
+            $respuesta = $db->makeQuery($query, $datos)->fetchAll();
+            $response->getBody()->write(json_encode($respuesta));
+            $db->close();
+            return $response->withStatus(200);
+        }
+        catch(Exception $e){
+            $response->getBody()->write($e->getMessage());
+            $db->close();
+            return $response->withStatus(404);
         }
     }
 }
