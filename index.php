@@ -3,6 +3,7 @@ use Slim\Factory\AppFactory;
 
 require 'App/src/Models/GenerosController.php';
 require 'App/src/Models/PlataformaController.php';
+require 'App/src/Models/JuegosController.php';
 require 'vendor/autoload.php';
 require 'App/src/Models/DB.php';
 
@@ -21,13 +22,13 @@ $app->put('/plataformas/{id}', '\App\src\Models\PlataformasController:update');
 $app->delete('/plataformas/{id}', '\App\src\Models\PlataformasController:delete');
 
 //endpoints Juegos (ver -> README.md)
-$app->get('/juegosall', '\App\src\Models\PlataformaController:juegosAll');
+$app->get('/juegosAll', '\App\src\Models\JuegosController:juegosAll');
 
-$app->get('/juegos', '\App\src\Models\PlataformaController:juegos');
+$app->get('/juegos', '\App\src\Models\JuegosController:juegos');
 
-$app->post('/juegos', '\App\src\Models\PlataformaController:createJuego');
+$app->post('/juegos', '\App\src\Models\JuegosController:createJuego');
 
-$app->put('/juegos/{id}', '\App\src\Models\PlataformaController:updateJuegos');
+$app->put('/juegos/{id}', '\App\src\Models\JuegosController:updateJuegos');
 
 // Correr la aplicación
 $app->run();
