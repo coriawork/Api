@@ -88,22 +88,34 @@ class JuegosController{
             return $response->withStatus(404);
         }
     }    
-    public function search($request, $response, $args)
-    {
+    public function search($request, $response, $args) {
+        /* Esta función debe recibir al menos 1 parámetro de búsqueda. Si el único parámetro de búsqueda es el orden 
+        se debe solicitar que se inserte otro parámetro de búsqueda adicional */
         $db = new DB();
         try {
             $body = json_decode($request->getBody(), true);
             $query = "SELECT * FROM juegos WHERE ";
             $bindings = [];
             $length = count($body);
-            for ($i = 0; $i < $length - 1; $i++) {
-                $query .= "{$body[$i]} = :{$body[$i]}, ";
-                $bindings[":{$body[$i]}"] = $body[$i];
+            if ($length == 1) {
+                if (isset($body['orden'])) throw new Exception("Ingrese al menos otro parámetro de búsqueda adicional", 400);
             }
-            $query = rtrim($query, ', '); // remuevo la última coma de la query
-            $bindings[":{$body['orden']}"] = $body['orden'];
-            $query .= " ORDER BY {$lastValue}";
-    
+            /* Preguntar si la última clave es el orden o no. Si no hay orden, el order by no se agrega
+            Si hay orden se bindea y se agrega el fragmento de query con el ORDER BY.*/            
+            for ($i = 0; $i < $length - 1; $i++) {
+                $query .= "{$body[$i]} = :{$body[$i]}, "; // clave = binding que tendrá el valor de dicha clave
+                $bindings[":{$body[$i]}"] = $body[$i]; // se realiza dicho binding
+            }
+            if (array_key_exists('orden', $body)) {
+                $query = rtrim($query, ', ');
+                $lastValue = $body['orden'];
+                $query .= " ORDER BY :{$lastValue}";
+                $bindings[":{$body['orden']}"] = $body['orden'];
+            }
+            else {
+                $query .= "{$body[$i]} = :{$body[$i]}"; // igual que en el for pero sin al coma adicional
+                $bindings[":{$body[$i]}"] = $body[$i];  
+            }
             $db->makeQuery($query, $bindings);
     
             return $response->withStatus(200);
