@@ -70,7 +70,7 @@ class JuegosController{
         Por tanto, es obligatorio que la request contenga los siguientes campos:
             nombre(str),
             imagen(blob en base64),
-            tipo_imagen(str): debe ingresarse un tipo válido,
+            tipo_imagen(str): debe ingresarse un tipo válido: png o jpg,
             id_plataforma(int): debe ser un id válido de una plataforma existente
         Los siguientes campos son opcionales:
             descripcion(str): no más de 255 caracteres.
@@ -80,11 +80,11 @@ class JuegosController{
         */
         function validarCreacionJuego($body, $response) {
             /*
-            Esta función recibe el cuerpo de la request. Imprime mensajes indicando si hubo o no hubo errores en la validación
-            y devuelve un booleano que indica si hubo o no hubo errores.
+            Esta función recibe el cuerpo de la request. Imprime mensajes indicando si hubo o no hubo errores en la validación.
             Es una función local que solo se debe invocar cuando se crea un juego, por eso el alcance otorgado.
             */
             $huboErr =false;
+
             if(empty($body['name'])){
                 $err1 = "Campo nombre requerido ";
                 $huboErr =true;
@@ -106,46 +106,45 @@ class JuegosController{
                 $err6 = "Campo plataforma requerido";
                 $huboErr = true;
             }
-            if($body["imagen"] == 0){
+            if(empty($body['imagen'])){
                 $err4 = "La imagen es un campo requerido";
                 $huboErr = true;
             }
-            if(!exif_imagetype($_FILES['imagen']['tmp_name'])){
-                $err5 = "el archivo no es un formato de imagen";
+            if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) {
+                $err5 = "el archivo no es un formato de imagen válido";
                 $huboErr = true;
             }
-            /* Si hubo errores: devolver los mismos con write en el body*/
+            /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
             if ($huboErr) {
                 $errors = ($err1.','.$err2.','.$err3 .','.$err4.','.$err5 . ',' . $err6. ',');
-                $response->getBody()->write($errors);
-                $response->withStatus(400);
+                //$response->getBody()->write($errors);
+                //$response->withStatus(400);
+                throw new Exception($errors, 400);
             }
             /* Caso contrario, mensaje en body de que se validó bien*/
             else {
                 $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos.");
             }
-            return $huboErr;
         }
         $db = new DB();
         $body = json_decode($request->getBody(), true);
         try {
             // Preguntamos si estan los parámetros obligatorios antes de validar            
             if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'], $body['id_genero'], $body['id_plataforma'])) throw new Exception("Faltan parámetros", 400);
-            if (validarCreacionJuego($body, $response)) {
-                $params = array(
-                    ':v1' => $body['nombre'],
-                    ':v2' => $body['imagen'],
-                    ':v3' => $body['tipo_imagen'],
-                    ':v4' => $body['descripcion'],
-                    ':v5' => $body['url'],
-                    ':v6' => $body['id_genero'],
-                    ':v7' => $body['id_plataforma']
-                    );
-                $query = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, descripcion, url, id_genero, id_plataforma) VALUES (:v1,:v2,:v3,:v4,:v5,:v6,:v7)';
-                $db->makeQuery($query,$params);
-                $response->getBody()->write("Se actualizo bien");
-                return $response->withStatus(200);
-            }
+            validarCreacionJuego($body, $response)
+            $params = array(
+                ':v1' => $body['nombre'],
+                ':v2' => $body['imagen'],
+                ':v3' => $body['tipo_imagen'],
+                ':v4' => $body['descripcion'],
+                ':v5' => $body['url'],
+                ':v6' => $body['id_genero'],
+                ':v7' => $body['id_plataforma']
+                );
+            $query = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, descripcion, url, id_genero, id_plataforma) VALUES (:v1,:v2,:v3,:v4,:v5,:v6,:v7)';
+            $db->makeQuery($query,$params);
+            $response->getBody()->write("Se actualizo bien");
+            return $response->withStatus(200);
         }
         catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
@@ -167,12 +166,18 @@ class JuegosController{
                 id_genero: id de genero existente,
                 id_plataforma: id de plataforma existente
         */
-        $db = new DB();
-        try {
+        function validarArgsUpdate($args, $db) {
             if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
             if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
             if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
-            $body = json_decode($request->getBody(), true);
+        }
+        function validarUpdateJuego () {
+            
+        }
+        $db = new DB();
+        validarArgsUpdate($args, $db)
+        $body = json_decode($request->getBody(), true);
+        try {
             $query = "UPDATE juegos SET "; // vamos a ir generando la query de a partes
             $bindings = [];
             foreach ($body as $field => $value) { //este for each mapea bindings con campos ingresados 
