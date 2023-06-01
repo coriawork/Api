@@ -1,16 +1,19 @@
-# Página de juegos API #
+# Página de Juegos API #
 
-Esta API permite operaciones CRUD (create, read, update, delete)
+Esta API permite operaciones CRUD (create, read, update, delete).
+La API recibe y envía información en formato JSON siguiendo protocolo HTTP.
+Estos son los Status posibles de los mensajes:
+- 200 OK: Indica que la solicitud se procesó correctamente y se
+devolvió una respuesta exitosa.
+- 400 Bad Request: Se utiliza cuando la solicitud enviada por el cliente
+es incorrecta o no se puede procesar debido a parámetros faltantes,
+valores inválidos o problemas de formato.
+- 404 Not Found: Indica que el recurso solicitado no se pudo encontrar
+en el servidor.
+
+La API retorna asimismo mensajes específicos que dan cuenta acerca de si la petición fue exitosa, o si existieron errores en la validación de los campos o el envío de los parámetros.
 
 ## Endpoints ##
-
-
-k) Eliminar un juego: el endpoint debe permitir enviar el id del juego y
-eliminarlo de la tabla.
-
-m) Buscar juegos: implementar un endpoint que permita buscar juegos por
-nombre, plataforma y género. El endpoint deberá aceptar un nombre, un
-id de género, un id de plataforma y un orden por nombre (ASC o DESC)
 
 ### Crear generos ###
 
@@ -113,7 +116,7 @@ GET `/juegos`
 El endpoint permite buscar un juego con parámetros de búsqueda.
 
 Parámetros obligatorios.
-► Es obligatorio que exista al menos uno de estos tres parámetros:
+► Es obligatorio que exista `al menos uno` de estos tres parámetros:
 - genero(str)
 - plataforma(str)
 - nombre(str)
@@ -125,11 +128,27 @@ Parámetros opcionales:
 
 PUT `/juegos`
 
-El endpoint permite actualizar la información de un juego existente en la tabla de juegos recibiendo los campos que se quieran actualizar
+El endpoint permite actualizar la información de un juego existente en la tabla de juegos recibiendo los campos que se quieran actualizar.
 
 Parámetros obligatorios:
+- id(int): se recibe como argumento
+► Es obligatorio al menos un parámetro opcional.
+
 Parámetros opcionales:
+- nombre(str),
+- imagen(blob en base64),
+- tipo_imagen(str): solo tipo de imagenes validas como .jpg o .png,
+- descripcion(str): no más de 255 char,
+- url(str): no más de 80 char,
+- id_genero: id de genero existente,
+- id_plataforma: id de plataforma existente
+
 
 ### Eliminar juego ###
 
 DELETE `/juegos`
+
+El endpoint permite eliminar un juego por id.
+
+Parámetros obligatorios:
+- id(int): se envía como argumento.
