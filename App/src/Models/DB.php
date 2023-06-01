@@ -1,24 +1,50 @@
 <?php
-
 namespace App\src\Models;
-class DB{
-    private $root = 'localhost';
+use PDO;
+use PDOStatement;
+class DB extends PDO {
+    private $host = 'localhost';
     private $user = 'root';
     private $pass = '';
     private $db = 'pagjuego';
     private $con;
-    public function __construct(){
-        $this->con = mysqli_connect($this->root,$this->user,$this->pass,$this->db);
+    
+    public function __construct() {
+        $dsn = "mysql:host=$this->host;dbname=$this->db;charset=utf8mb4";
+        $options = [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            \PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+        try {
+            $this->con = new \PDO($dsn, $this->user, $this->pass, $options);
+	    }
+       	catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int)$e->getCode());
+        }
     }
-    public function makeQuery($query){
-        return $this->con->query($query);
+    
+    public function prepare($query, $options = []): \PDOStatement {
+        return $this->con->prepare($query, $options);
     }
+
+    public function execute(\PDOStatement $stmt, array $params = []): bool {
+        return $stmt->execute($params);
+    }
+    
     public function close(){
-        $this->con->close();
+        $this->con = null;
     }
-    public function ExistIn($table,$data){
-       if($this->makeQuery('SELECT id FROM ' . $table . ' WHERE id = ' . $data . '')->fetch_array()==null)return false;
-       return true;
+    
+    public function existsIn($table, $data){
+        $query = 'SELECT id FROM ' . $table . ' WHERE id = :data';
+        $stmt = $this->makeQuery($query, [':data' => $data]);
+        return $stmt->fetch() !== false;
+	}
+    public function makeQuery($query, $params = []){
+        $stmt = $this->con->prepare($query);
+        $stmt->execute($params);
+        return $stmt;
     }
 }
 ?>

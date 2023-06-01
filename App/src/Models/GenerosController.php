@@ -20,7 +20,7 @@ class GenerosController{
         try{
             if (!is_numeric($args['id'])) throw new Exception("el id debe ser numerico", 400);
             if (!isset($args['id'])) throw new Exception("no se recibio el id para hacer el uptdate", 400);
-            if (!$db->ExistIn('Generos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
+            if (!$db->existsIn('Generos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
 
             $body = json_decode($request->getBody(), true);
             if(!isset($body['nombre']))throw new Exception("no se recibio el parametro para update", 400);
@@ -37,7 +37,7 @@ class GenerosController{
         try{
             $body = json_decode($request->getBody(), true);
             $result = $db->makeQuery("SELECT * from generos where id = '" . $body['id'] . "'");
-            if($result->num_rows === 0) throw new Exception("No existe el id", 400);
+            if($result->rowCount() === 0) throw new Exception("No existe el id", 400);
             if (!isset($body['id'])) throw new Exception("No se recibio el id", 400);
             $result = $db->makeQuery("DELETE FROM generos where id = '".$body['id']."'");
             return $response;
@@ -51,12 +51,13 @@ class GenerosController{
     public function list($request, $response, $args){
         $db = new DB();
         try {
-            $generos = $db->makeQuery('SELECT * FROM generos')->fetch_all(MYSQLI_ASSOC);
+            $generos = $db->makeQuery('SELECT * FROM generos')->fetchAll();
             //*forma de enviar las exepciones
             if (sizeof($generos) === 0)throw new Exception("No hay generos", 404);
             $response->getBody()->write(json_encode($generos));
             return $response->withStatus(200);
-        } catch (Exception $e) {
+	} 
+	catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
             return $response->withStatus(404);
         }
