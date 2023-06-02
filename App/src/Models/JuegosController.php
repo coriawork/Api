@@ -6,7 +6,7 @@ use App\src\Models\DB;
 use Exception;
 
 class JuegosController{
-
+    //*obtener Todos los juegos (h)
     public function juegosAll(Request $request, Response $response, $args){
         /*
         Esta funcion recibe un get request y devuelve todos los juegos
@@ -16,6 +16,7 @@ class JuegosController{
         $response->getBody()->write(json_encode($respuesta));
         return $response->withStatus(200);
     }  
+    //*buscar Juegos (m)
     public function juegos (Request $request, Response $response, $args){
         /*
         Esta función recibe un GET request con parámetros para buscar juego.
@@ -62,6 +63,7 @@ class JuegosController{
             return $response->withStatus(404);
         }
     }
+    //*Crear Juegos (i)
     public function createJuego (Request $request, Response $response, $args) {
         /*
         Esta función recibe un POST request para agregar un juego nuevo.
@@ -150,7 +152,7 @@ class JuegosController{
             return $response->withStatus($e->getCode());
         }
     }
-
+    //*Actualizar Juego (j)
     public function updateJuegos (Request $request, Response $response, $args) {
         /*
         Esta función recibe un PUT request con un id de juego y con parámetros para actualizarlo.
@@ -226,6 +228,7 @@ class JuegosController{
             return $response->withStatus(404);
         }
     }
+    //*Eliminar (l)
     public function delete($request, $response, $args){
         function validarDelete($args, $db, $body) {
             $result = $db->makeQuery("SELECT * from juegos where id = '" . $body['id'] . "'");

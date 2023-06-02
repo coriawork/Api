@@ -6,7 +6,7 @@ use App\src\Models\DB;
 use Exception;
 
 class PlataformasController{
-    //* todos los plataformas (d) --> ver README.md
+    //* todos los plataformas () --> ver README.md
     public function list(Request $request, Response $response, $args){
         $db = new DB();
         try {
@@ -24,7 +24,7 @@ class PlataformasController{
         }
     }
 
-    //* crea un plataforma (a) --> ver README.md
+    //* crea un plataforma (e) --> ver README.md
     public function create(Request $request, Response $response, $args){
         $db = new DB();
         $body = json_decode($request->getBody(), true);
@@ -35,7 +35,7 @@ class PlataformasController{
         $response->getBody()->write("Plataforma $nombre creado con éxito");
         return $response->withStatus(200);
     }
-    //* actualizar plataforma con id (b) --> ver README.md
+    //* actualizar plataforma con id (f) --> ver README.md
     public function update(Request $request, Response $response, $args){
         $db = new DB();
         try {
@@ -57,7 +57,7 @@ class PlataformasController{
         }
     }
     
-    //* delete (c)
+    //* delete (g)
     public function delete(Request $request, Response $response, $args){
         $db = new DB();
         try {
