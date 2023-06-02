@@ -136,7 +136,7 @@ class JuegosController{
             }
             /* Caso contrario, mensaje en body de que se validó bien*/
             else {
-                $res->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la creación...");
+                $res->getBody()->write("Campos validados...");
             }
         }
         $db = new DB();
@@ -144,30 +144,43 @@ class JuegosController{
         try {
             // Preguntamos si estan los parámetros obligatorios antes de validar            
             if (!isset($body['nombre'], $body['imagen'], $body['tipo_imagen'], $body['id_plataforma'])) throw new Exception("Faltan parámetros obligatorios. Revisar los mismos en la documentacion de la API https://github.com/coriawork/tp2/blob/Merge/README.md", 400);
-            validarCreacionJuego($body, $response, $db);
-            $params = array(
-                ':v1' => $body['nombre'],
-                ':v2' => $body['imagen'],
-                ':v3' => $body['tipo_imagen'],
-                ':v4' => $body['id_plataforma'],
-            );
-            if (isset($body['descripcion'])) {
-                $params[':v5'] = $body['descripcion'];
+                validarCreacionJuego($body, $response, $db);
+                $params = array(
+                    ':v1' => $body['nombre'],
+                    ':v2' => $body['imagen'],
+                    ':v3' => $body['tipo_imagen'],
+                    ':v4' => $body['id_plataforma'],
+                );
+                $query_fields = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, id_plataforma,';
+                $query_values = 'VALUES (:v1,:v2,:v3,:v4,';
+                if (isset($body['descripcion'])) {
+                    $params[':v5'] = $body['descripcion'];
+                    $query_fields .= 'descripcion, ';
+                    $query_values .= ':v5, ';
+                }
+                if (isset($body['url'])) {
+                    $params[':v6'] = $body['url'];
+                    $query_fields .= 'url, ';
+                    $query_values .= ':v6, ';
+                }
+                if (isset($body['id_genero'])) {
+                    $params[':v7'] = $body['id_genero'];
+                    $query_fields .= 'id_genero, ';
+                    $query_values .= ':v7, ';
+                }
+                $query_fields .= ')';
+                rtrim($query_fields, ', ');
+                $query_values .= ')';
+                rtrim($query_values, ', ');
+                $query = $query_fields . ' ' . $query_values;
+                echo($query);
+                $db->makeQuery($query,$params);
+                $response->getBody()->write("Se actualizo bien");
+                return $response->withStatus(200);
             }
-            if (isset($body['url'])) {
-                $params[':v6'] = $body['url'];
-            }
-            if (isset($body['id_genero'])) {
-                $params[':v7'] = $body['id_genero'];
-            }
-            $query = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, descripcion, url, id_genero, id_plataforma) VALUES (:v1,:v2,:v3,:v4,:v5,:v6,:v7)';
-            $db->makeQuery($query,$params);
-            $response->getBody()->write("Se actualizo bien");
-            return $response->withStatus(200);
-        }
         catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
-            return $response->withStatus($e->getCode());
+            return $response->withStatus(400);
         }
     }
     //*Actualizar Juego (j)
@@ -248,20 +261,19 @@ class JuegosController{
     }
     //*Eliminar (l)
     public function delete($request, $response, $args){
-        function validarDelete($args, $db, $body) {
-            $result = $db->makeQuery("SELECT * from juegos where id = '" . $body['id'] . "'");
-            if($result->rowCount() === 0) throw new Exception("No existe el id", 400);
-            if (!isset($body['id'])) throw new Exception("No se recibio el id", 400);
-        }
-
         $db = new DB();
-        $body = json_decode($request->getBody(), true);
-        validarDelete($args, $db, $body);
         try {
-            $db->makeQuery("DELETE FROM juegos where id = '".$body['id']."'");
+            if (!isset($args['id'])) throw new Exception("No se recibió el id", 400);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
+            if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
+            $db->makeQuery("DELETE FROM juegos WHERE id = ?", [$args['id']]);
+            $db->close();
+            $response->getBody()->write("Plataforma eliminada con éxito");
             return $response;
         }
         catch (Exception $e) {
+            $db->close();
+            $response->getBody()->write("Su solicitud arrojó un error: ");
             $response->getBody()->write($e->getMessage());
             return $response->withStatus(400);
         }
