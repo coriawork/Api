@@ -248,20 +248,19 @@ class JuegosController{
     }
     //*Eliminar (l)
     public function delete($request, $response, $args){
-        function validarDelete($args, $db, $body) {
-            $result = $db->makeQuery("SELECT * from juegos where id = '" . $body['id'] . "'");
-            if($result->rowCount() === 0) throw new Exception("No existe el id", 400);
-            if (!isset($body['id'])) throw new Exception("No se recibio el id", 400);
-        }
-
         $db = new DB();
-        $body = json_decode($request->getBody(), true);
-        validarDelete($args, $db, $body);
         try {
-            $db->makeQuery("DELETE FROM juegos where id = '".$body['id']."'");
+            if (!isset($args['id'])) throw new Exception("No se recibió el id", 400);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
+            if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
+            $db->makeQuery("DELETE FROM juegos WHERE id = ?", [$args['id']]);
+            $db->close();
+            $response->getBody()->write("Plataforma eliminada con éxito");
             return $response;
         }
         catch (Exception $e) {
+            $db->close();
+            $response->getBody()->write("Su solicitud arrojó un error: ");
             $response->getBody()->write($e->getMessage());
             return $response->withStatus(400);
         }
