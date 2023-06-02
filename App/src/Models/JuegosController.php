@@ -43,12 +43,12 @@ class JuegosController{
                 array_push($datos,$genero);
             }
             if($nombre != null){
-                $query .= "AND nombre like ?";
+                $query .= " AND nombre like ?";
                 $nombre = "%".$nombre."%";
                 array_push($datos, $nombre);
             }
             if($id_plataforma!= null){
-                $query.="AND id_plataforma =?";
+                $query.=" AND id_plataforma =?";
                 array_push($datos, $id_plataforma);
             }
             if($asc)$query.=" ORDER BY nombre ASC ";
@@ -199,24 +199,28 @@ class JuegosController{
             $body = json_decode($request->getBody(), true);
             if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
             if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
-            /**Son obligatorios:
-            args: id(int)
-            body:
-                son obligatorios los campos: nombre,imagen,plataforma 
-                resto de campos:
-                nombre(str),
-                imagen(blob en base64),
-                tipo_imagen(str): solo tipo de imagenes validas como .jpg o .png,
-                descripcion(str): no más de 255 char,
-                url(str): no más de 80 char,
-                id_genero: id de genero existente,
-                id_plataforma: id de plataforma existente
+            /*
+            El endpoint permite actualizar la información de un juego existente en la tabla de juegos recibiendo los campos que se quieran actualizar.
+
+            Parámetros obligatorios:
+            - id(int): se recibe como argumento
+            ► Es obligatorio al menos un parámetro opcional.
+
+            Parámetros opcionales:
+            - nombre(str),
+            - imagen(blob en base64),
+            - tipo_imagen(str): solo tipo de imagenes validas como .jpg o .png,
+            - descripcion(str): no más de 255 char,
+            - url(str): no más de 80 char,
+            - id_genero: id de genero existente,
+            - id_plataforma: id de plataforma existente
+
              */
             if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 400);
-            if (!isset($body["descripcion"]) || empty($body['descripcion'])) throw new Exception("la descripcion es obligatoria", 400);
+            if (!isset($body["id_plataforma"]) || empty($body['id_plataforma'])) throw new Exception("La plataforma es obligatoria", 400);
             if (!isset($body["nombre"]) || empty($body['nombre'])
             ) throw new Exception("el nombre es obligatorio", 400);
-            if (strlen($body["descripcion"]) > 255) throw new Exception("La descripcion debe de ser de menos de 255 caracteres", 400);
+            if (isset($body["descripcion"]) && strlen($body["descripcion"]) > 255) throw new Exception("La descripcion debe de ser de menos de 255 caracteres", 400);
             if (isset($body["url"]) && strlen($body["url"]) > 88) throw new Exception("La url debe de ser de menos de 88 caracteres", 400);
             if (!isset($body["imagen"]) || empty($body['imagen'])
             ) throw new Exception("la imagen es obligatoria", 400);
