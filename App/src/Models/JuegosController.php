@@ -81,7 +81,7 @@ class JuegosController{
             id_genero(): debe ser un id válido de un genero existente.
         Si la creación del juego es exitosa se imprime un mensaje junto con un Status200 en la response.
         */
-        function validarCreacionJuego($body, $res) {
+        function validarCreacionJuego($body, $res, $db) {
             /*
             Esta función recibe el cuerpo de la request. Imprime mensajes indicando si hubo o no hubo errores en la validación.
             Es una función local que solo se debe invocar cuando se crea un juego, por eso el alcance otorgado.
@@ -108,21 +108,27 @@ class JuegosController{
                 array_push($errors, $err4);
                 $huboErr = true;
             }
-            if (isset($body["genero"]) && empty($body['genero'])) {
-                $err5 = "Campo plataforma requerido";
+            if (isset($body["id_genero"]) && (!$db->existsIn('generos', $body['id']))) {
+                $err5 = "El id_genero suministrado no es un id valido";
                 array_push($errors, $err5);
                 $huboErr = true;
             }
-            if(empty($body['imagen'])){
+            if (empty($body['imagen'])) {
                 $err6 = "La imagen es un campo requerido";
                 array_push($errors, $err6);
                 $huboErr = true;
             }
             if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) {
-                $err5 = "El tipo del archivo no es un formato de imagen válido";
+                $err7 = "El tipo del archivo no es un formato de imagen válido";
+                array_push($errors, $err7);
                 $huboErr = true;
             }
-            /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
+            if (!$db->existsIn('plataformas', $body['id_plataforma'])) {
+                $err8 = "El id_plataforma suministrado no es un id valido";
+                array_push($errors, $err8);
+                $huboErr = true;
+            }
+                /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
             if ($huboErr) {
                 //$res->getBody()->write($errors);
                 //$res->withStatus(400);
@@ -138,16 +144,22 @@ class JuegosController{
         try {
             // Preguntamos si estan los parámetros obligatorios antes de validar            
             if (!isset($body['nombre'], $body['imagen'], $body['tipo_imagen'], $body['id_plataforma'])) throw new Exception("Faltan parámetros obligatorios. Revisar los mismos en la documentacion de la API https://github.com/coriawork/tp2/blob/Merge/README.md", 400);
-            validarCreacionJuego($body, $response);
+            validarCreacionJuego($body, $response, $db);
             $params = array(
                 ':v1' => $body['nombre'],
                 ':v2' => $body['imagen'],
                 ':v3' => $body['tipo_imagen'],
-                ':v4' => $body['descripcion'],
-                ':v5' => $body['url'],
-                ':v6' => $body['id_genero'],
-                ':v7' => $body['id_plataforma']
-                );
+                ':v4' => $body['id_plataforma'],
+            );
+            if (isset($body['descripcion'])) {
+                $params[':v5'] = $body['descripcion'];
+            }
+            if (isset($body['url'])) {
+                $params[':v6'] = $body['url'];
+            }
+            if (isset($body['id_genero'])) {
+                $params[':v7'] = $body['id_genero'];
+            }
             $query = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, descripcion, url, id_genero, id_plataforma) VALUES (:v1,:v2,:v3,:v4,:v5,:v6,:v7)';
             $db->makeQuery($query,$params);
             $response->getBody()->write("Se actualizo bien");
