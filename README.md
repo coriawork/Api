@@ -99,11 +99,11 @@ Parámetros obligatorios:
 - imagen(blob en base64)
 - tipo_imagen(str): debe ingresarse un tipo válido: 'png' o 'jpg'
 - id_plataforma(int): debe ser un id válido de una plataforma existente
+- id_genero(): debe ser un id válido de un genero existente.
 
 Parámetros opcionales:
 - descripcion(str): de no más de 255 caracteres.
 - url(str): de no más de 88 caracteres.
-- id_genero(): debe ser un id válido de un genero existente.
 
 ### Buscar juego ###
 

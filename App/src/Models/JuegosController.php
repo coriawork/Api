@@ -108,7 +108,7 @@ class JuegosController{
                 array_push($errors, $err4);
                 $huboErr = true;
             }
-            if (isset($body["id_genero"]) && (!$db->existsIn('generos', $body['id']))) {
+            if (!empty($body["id_genero"]) && (!$db->existsIn('generos', $body['id_genero']))) {
                 $err5 = "El id_genero suministrado no es un id valido";
                 array_push($errors, $err5);
                 $huboErr = true;
@@ -150,23 +150,21 @@ class JuegosController{
                     ':v2' => $body['imagen'],
                     ':v3' => $body['tipo_imagen'],
                     ':v4' => $body['id_plataforma'],
+                    ':v5' => $body['id_genero'],
                 );
-                $query_fields = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, id_plataforma,';
-                $query_values = 'VALUES (:v1,:v2,:v3,:v4,';
+                $query_fields = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, id_plataforma, id_genero';
+                $query_values = 'VALUES (:v1,:v2,:v3,:v4,:v5';
                 if (isset($body['descripcion'])) {
-                    $params[':v5'] = $body['descripcion'];
+                    $params[':v6'] = $body['descripcion'];
                     $query_fields .= 'descripcion, ';
-                    $query_values .= ':v5, ';
-                }
-                if (isset($body['url'])) {
-                    $params[':v6'] = $body['url'];
-                    $query_fields .= 'url, ';
                     $query_values .= ':v6, ';
                 }
-                if (isset($body['id_genero'])) {
-                    $params[':v7'] = $body['id_genero'];
-                    $query_fields .= 'id_genero, ';
+                if (isset($body['url'])) {
+                    $params[':v7'] = $body['url'];
+                    $query_fields .= 'url, ';
                     $query_values .= ':v7, ';
+                }
+                
                 }
                 $query_fields .= ')';
                 $query_values .= ')';
@@ -177,10 +175,11 @@ class JuegosController{
                 $query = $query_fields . ' ' . $query_values;
                 echo($query);
                 $db->makeQuery($query,$params);
-                $response->getBody()->write("Se actualizo bien");
+                $response->getBody()->write("Juego creado con exito");
                 return $response->withStatus(200);
             }
         catch (Exception $e) {
+            $response->getBody()->write("Error en la creacion de juego ->");
             $response->getBody()->write($e->getMessage());
             return $response->withStatus(400);
         }
