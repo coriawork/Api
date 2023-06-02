@@ -30,5 +30,6 @@ $app->post('/juegos', '\App\src\Models\JuegosController:createJuego');
 
 $app->put('/juegos/{id}', '\App\src\Models\JuegosController:updateJuegos');
 
+$app->delete('/juegos/{id}', '\App\src\Models\JuegosController:delete');
 // Correr la aplicación
 $app->run();
