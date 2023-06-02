@@ -152,8 +152,8 @@ class JuegosController{
                     ':v4' => $body['id_plataforma'],
                     ':v5' => $body['id_genero'],
                 );
-                $query_fields = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, id_plataforma, id_genero';
-                $query_values = 'VALUES (:v1,:v2,:v3,:v4,:v5';
+                $query_fields = 'INSERT INTO juegos (nombre, imagen, tipo_imagen, id_plataforma, id_genero,';
+                $query_values = 'VALUES (:v1,:v2,:v3,:v4,:v5,';
                 if (isset($body['descripcion'])) {
                     $params[':v6'] = $body['descripcion'];
                     $query_fields .= 'descripcion, ';
