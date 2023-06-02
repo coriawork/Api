@@ -4,6 +4,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\src\Models\DB;
 use Exception;
+use Throwable;
 
 class JuegosController{
 
@@ -31,8 +32,8 @@ class JuegosController{
         try {
             $genero = $request->getQueryParams()['genero'] ?? null;
             $nombre = $request->getQueryParams()['nombre'] ?? null;
-            $plataforma = $request->getQueryParams()['plataforma'] ?? null;
-            if ($genero === null && $plataforma === null && $nombre === null) throw new Exception("se debe dar un parametro (genero o plataforma o nombre)", 400);
+            $id_plataforma = $request->getQueryParams()['id_plataforma'] ?? null;
+            if ($genero === null && $id_plataforma === null && $nombre === null) throw new Exception("se debe dar un parametro (genero o id_plataforma o nombre)", 400);
             $asc = $request->getQueryParams()['asc']?? false;
             $datos = [];
             $query = "SELECT * FROM juegos WHERE 1=1 ";
@@ -45,9 +46,9 @@ class JuegosController{
                 $nombre = "%".$nombre."%";
                 array_push($datos, $nombre);
             }
-            if($plataforma!= null){
-                $query.="AND plataforma =?";
-                array_push($datos, $plataforma);
+            if($id_plataforma!= null){
+                $query.="AND id_plataforma =?";
+                array_push($datos, $id_plataforma);
             }
             if($asc)$query.=" ORDER BY nombre ASC ";
             $respuesta = $db->makeQuery($query, $datos)->fetchAll();
@@ -84,41 +85,46 @@ class JuegosController{
             Es una función local que solo se debe invocar cuando se crea un juego, por eso el alcance otorgado.
             */
             $huboErr =false;
-
-            if(empty($body['name'])){
+            $errors = [];
+            if(empty($body['nombre'])){
                 $err1 = "Campo nombre requerido ";
+                array_push($errors, $err1);
                 $huboErr =true;
             }
-            if (strlen($body["descripcion"]) > 255) {
+            if (isset($body["descripcion"]) && strlen($body["descripcion"]) > 255) {
                 $err2 = "La descripcion debe de ser de menos de 255 caracteres";
+                array_push($errors, $err2);
                 $huboErr =true;
             }
-            if (strlen($body["url"]) > 88) {
+            if (isset($body["url"]) && strlen($body["url"]) > 88) {
                 $err3 = "La url debe de ser de menos de 88 caracteres";
+                array_push($errors, $err3);
                 $huboErr =true;
             }
-            if (empty($body['plataforma'])) {
+            if (empty($body['id_plataforma'])) {
                 $err4 = "Campo plataforma requerido";
+                array_push($errors, $err4);
                 $huboErr = true;
             }
-            if (empty($body['genero'])) {
-                $err6 = "Campo plataforma requerido";
+            if (isset($body["genero"]) && empty($body['genero'])) {
+                $err5 = "Campo plataforma requerido";
+                array_push($errors, $err5);
                 $huboErr = true;
             }
             if(empty($body['imagen'])){
-                $err4 = "La imagen es un campo requerido";
+                $err6 = "La imagen es un campo requerido";
+                array_push($errors, $err6);
                 $huboErr = true;
             }
             if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) {
-                $err5 = "el archivo no es un formato de imagen válido";
+                $err5 = "El tipo del archivo no es un formato de imagen válido";
                 $huboErr = true;
             }
             /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
             if ($huboErr) {
-                $errors = ($err1.','.$err2.','.$err3 .','.$err4.','.$err5 . ',' . $err6. ',');
                 //$res->getBody()->write($errors);
                 //$res->withStatus(400);
-                throw new Exception($errors, 400);
+                throw new Exception(implode(". ", $errors),400);
             }
             /* Caso contrario, mensaje en body de que se validó bien*/
             else {
@@ -129,7 +135,7 @@ class JuegosController{
         $body = json_decode($request->getBody(), true);
         try {
             // Preguntamos si estan los parámetros obligatorios antes de validar            
-            if (!isset($body['nombre'], $body['url'], $body['imagen'], $body['tipo_imagen'], $body['descripcion'], $body['id_genero'], $body['id_plataforma'])) throw new Exception("Faltan parámetros", 400);
+            if (!isset($body['nombre'], $body['imagen'], $body['tipo_imagen'], $body['id_plataforma'])) throw new Exception("Faltan parámetros obligatorios. Revisar los mismos en la documentacion de la API https://github.com/coriawork/tp2/blob/Merge/README.md", 400);
             validarCreacionJuego($body, $response);
             $params = array(
                 ':v1' => $body['nombre'],
