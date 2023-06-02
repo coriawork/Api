@@ -32,7 +32,7 @@ class PlataformasController{
         $nombre = $body['nombre'];
         $db->makeQuery("INSERT INTO plataformas (nombre) VALUES (?)", [$nombre]);
         $db->close();
-        $response->getBody()->write("Plataforma $nombre creado con éxito");
+        $response->getBody()->write("Plataforma $nombre creada con éxito");
         return $response->withStatus(200);
     }
     //* actualizar plataforma con id (f) --> ver README.md
