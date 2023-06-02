@@ -191,7 +191,7 @@ class JuegosController{
         /*
         Esta función recibe un PUT request con un id de juego y con parámetros para actualizarlo.
         */
-        $db = new DB();
+        $db = new DB();       
         try {
             /*Se validan los argumentos chequeando que:
             -Se recibió el id como argumento.
@@ -214,15 +214,13 @@ class JuegosController{
                 id_plataforma: id de plataforma existente
              */
             if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 400);
-            if (!isset($body["descripcion"]) || empty($body['descripcion'])) throw new Exception("la descripcion es obligatoria", 400);
-            if (!isset($body["nombre"]) || empty($body['nombre'])
-            ) throw new Exception("el nombre es obligatorio", 400);
+            if(!isset($body["descripcion"]) || empty($body['descripcion'])) throw new Exception("la descripcion es obligatoria", 400);
+            if (!isset($body["nombre"]) || empty($body['nombre'])) throw new Exception("el nombre es obligatorio", 400);
             if (strlen($body["descripcion"]) > 255) throw new Exception("La descripcion debe de ser de menos de 255 caracteres", 400);
-            if (isset($body["url"]) && strlen($body["url"]) > 88) throw new Exception("La url debe de ser de menos de 88 caracteres", 400);
-            if (!isset($body["imagen"]) || empty($body['imagen'])
-            ) throw new Exception("la imagen es obligatoria", 400);
+            if(isset($body["url"]) && strlen($body["url"]) > 88) throw new Exception("La url debe de ser de menos de 88 caracteres", 400);
+            if(!isset($body["imagen"]) || empty($body['imagen'])) throw new Exception("la imagen es obligatoria", 400);
             if (!isset($body["tipo_imagen"]) || empty($body['tipo_imagen'])) throw new Exception("la tipo de imagen es obligatoria", 400);
-            if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) throw new Exception("El archivo no es un formato de imagen válido. Solo se permite 'jpg' y 'png'", 400);;
+            if(!in_array($body['tipo_imagen'], ['jpg', 'png'])) throw new Exception("El archivo no es un formato de imagen válido. Solo se permite 'jpg' y 'png'", 400);;
 
             $query = "UPDATE juegos SET ";
             $bindings = [];
