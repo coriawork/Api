@@ -165,7 +165,7 @@ class JuegosController{
                     $query_values .= ':v7, ';
                 }
                 
-                }
+                
                 $query_fields .= ')';
                 $query_values .= ')';
                 $query_fields = preg_replace('/,+(?=,|\s*\))/','',$query_fields);                
