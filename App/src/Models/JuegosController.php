@@ -174,9 +174,21 @@ class JuegosController{
     public function updateJuegos (Request $request, Response $response, $args) {
         /*
         Esta función recibe un PUT request con un id de juego y con parámetros para actualizarlo.
-        Son obligatorios:
+        */
+        $db = new DB();       
+        try {
+            /*Se validan los argumentos chequeando que:
+            -Se recibió el id como argumento.
+            -El id es numerico.
+            */
+            $body = json_decode($request->getBody(), true);
+            if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
+            /**Son obligatorios:
             args: id(int)
-            body: es obligatorio al menos uno de los siguientes campos:
+            body:
+                son obligatorios los campos: nombre,imagen,plataforma 
+                resto de campos:
                 nombre(str),
                 imagen(blob en base64),
                 tipo_imagen(str): solo tipo de imagenes validas como .jpg o .png,
@@ -184,50 +196,16 @@ class JuegosController{
                 url(str): no más de 80 char,
                 id_genero: id de genero existente,
                 id_plataforma: id de plataforma existente
-        */
-        function validarArgsUpdate($args) {
-            /*Se validan los argumentos chequeando que:
-            -Se recibió el id como argumento.
-            -El id es numerico.
-            */
-            if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
-            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
-        }
-        function validarUpdateJuego ($db, $body, $res, $args) {
-            $huboErr = false;
-            if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
-            if (strlen($body["descripcion"]) > 255) {
-                $err2 = "La descripcion debe de ser de menos de 255 caracteres";
-                $huboErr =true;
-            }
-            if (strlen($body["url"]) > 88) {
-                $err3 = "La url debe de ser de menos de 88 caracteres";
-                $huboErr =true;
-            if(empty($body['imagen']))
-                $err4 = "No ingresó ninguna imagen en base64. Campo vacío.";
-                $huboErr = true;
-            }
-            if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) {
-                $err5 = "El archivo no es un formato de imagen válido. Solo se permite 'jpg' y 'png'";
-                $huboErr = true;
-            }
-            /* Si hubo errores: arrojar excepcion con los mismos con write en el body y status 400*/
-            if ($huboErr) {
-                $errors = ($err2.','.$err3 .','.$err4.','.$err5);
-                //$res->getBody()->write($errors);
-                //$res->withStatus(400);
-                throw new Exception($errors, 400);
-            }
-            /* Caso contrario, mensaje en body de que se validó bien*/
-            else {
-                $res->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la actualización...");
-            }
-        }
-        $db = new DB();
-        validarArgsUpdate($args);
-        $body = json_decode($request->getBody(), true);
-        validarUpdateJuego($db, $body, $response, $args);
-        try {
+             */
+            if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 400);
+            if(!isset($body["descripcion"]) || empty($body['descripcion'])) throw new Exception("la descripcion es obligatoria", 400);
+            if (!isset($body["nombre"]) || empty($body['nombre'])) throw new Exception("el nombre es obligatorio", 400);
+            if (strlen($body["descripcion"]) > 255) throw new Exception("La descripcion debe de ser de menos de 255 caracteres", 400);
+            if(isset($body["url"]) && strlen($body["url"]) > 88) throw new Exception("La url debe de ser de menos de 88 caracteres", 400);
+            if(!isset($body["imagen"]) || empty($body['imagen'])) throw new Exception("la imagen es obligatoria", 400);
+            if (!isset($body["tipo_imagen"]) || empty($body['tipo_imagen'])) throw new Exception("la tipo de imagen es obligatoria", 400);
+            if(!in_array($body['tipo_imagen'], ['jpg', 'png'])) throw new Exception("El archivo no es un formato de imagen válido. Solo se permite 'jpg' y 'png'", 400);;
+
             $query = "UPDATE juegos SET ";
             $bindings = [];
             foreach ($body as $field => $value) { //este for each mapea bindings con campos ingresados 
@@ -238,7 +216,7 @@ class JuegosController{
             $query .= " WHERE id = :id";
             $bindings[':id'] = $args['id'];
             $db->makeQuery($query, $bindings)->fetchAll();
-            $response->getBody()->write("Se actualizo bien");
+            $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la actualización...");
             return $response->withStatus(200);
         } 
         catch (Exception $e) {
