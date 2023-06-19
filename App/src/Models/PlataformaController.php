@@ -14,7 +14,10 @@ class PlataformasController{
             if (count($plataformas) === 0) throw new Exception("No hay plataformas", 404);
             $response->getBody()->write(json_encode($plataformas));
             $db->close();
-            return $response->withStatus(200);
+            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            return $response->withHeader('content-type', 'application/json')->withStatus(200);
         } 
         catch (Exception $e) {
             $db->close();

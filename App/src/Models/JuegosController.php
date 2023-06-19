@@ -15,7 +15,12 @@ class JuegosController{
         $db = new DB();
         $respuesta = $db->makeQuery('SELECT * FROM juegos')->fetchAll();
         $response->getBody()->write(json_encode($respuesta));
-        return $response->withStatus(200);
+
+        $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        return $response->withHeader('content-type', 'application/json')->withStatus(200);
     }  
     //*buscar Juegos (m)
     public function juegos (Request $request, Response $response, $args){
@@ -34,7 +39,7 @@ class JuegosController{
             $genero = $request->getQueryParams()['genero'] ?? null;
             $nombre = $request->getQueryParams()['nombre'] ?? null;
             $id_plataforma = $request->getQueryParams()['id_plataforma'] ?? null;
-            if ($genero === null && $id_plataforma === null && $nombre === null) throw new Exception("se debe dar un parametro (genero o id_plataforma o nombre)", 400);
+            /* if ($genero === null || $id_plataforma === null || $nombre === null) throw new Exception("se debe dar un parametro (genero o id_plataforma o nombre)", 400); */
             $asc = $request->getQueryParams()['asc']?? false;
             $datos = [];
             $query = "SELECT * FROM juegos WHERE 1=1 ";
@@ -56,7 +61,11 @@ class JuegosController{
             if(count($respuesta) === 0)throw new Exception("No se encontro el juego", 404);
             $response->getBody()->write(json_encode($respuesta));
             $db->close();
-            return $response->withStatus(200);
+            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+            return $response->withHeader('content-type', 'application/json')->withStatus(200);
         }
         catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
@@ -143,7 +152,7 @@ class JuegosController{
         $body = json_decode($request->getBody(), true);
         try {
             // Preguntamos si estan los parámetros obligatorios antes de validar            
-            if (!isset($body['nombre'], $body['imagen'], $body['tipo_imagen'], $body['id_plataforma'])) throw new Exception("Faltan parámetros obligatorios. Revisar los mismos en la documentacion de la API https://github.com/coriawork/tp2/blob/Merge/README.md", 400);
+            /* if (!isset($body['nombre'], $body['imagen'], $body['tipo_imagen'], $body['id_plataforma'])) throw new Exception("Faltan parámetros obligatorios. Revisar los mismos en la documentacion de la API https://github.com/coriawork/tp2/blob/Merge/README.md", 400); */
                 validarCreacionJuego($body, $response, $db);
                 $params = array(
                     ':v1' => $body['nombre'],
@@ -199,33 +208,33 @@ class JuegosController{
             $body = json_decode($request->getBody(), true);
             if (!isset($args['id'])) throw new Exception("No se recibio el id para hacer el update", 400);
             if (!is_numeric($args['id'])) throw new Exception("El id debe ser numerico", 400);
-            /*
-            El endpoint permite actualizar la información de un juego existente en la tabla de juegos recibiendo los campos que se quieran actualizar.
-
-            Parámetros obligatorios:
-            - id(int): se recibe como argumento
-            ► Es obligatorio al menos un parámetro opcional.
-
-            Parámetros opcionales:
-            - nombre(str),
-            - imagen(blob en base64),
-            - tipo_imagen(str): solo tipo de imagenes validas como .jpg o .png,
-            - descripcion(str): no más de 255 char,
-            - url(str): no más de 80 char,
-            - id_genero: id de genero existente,
-            - id_plataforma: id de plataforma existente
-
+            /**Son obligatorios:
+            args: id(int)
+            body:
+                son obligatorios los campos: nombre,imagen,plataforma 
+                resto de campos:
+                nombre(str),
+                imagen(blob en base64),
+                tipo_imagen(str): solo tipo de imagenes validas como .jpg o .png,
+                descripcion(str): no más de 255 char,
+                url(str): no más de 80 char,
+                id_genero: id de genero existente,
+                id_plataforma: id de plataforma existente
              */
             if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 400);
-            if (!isset($body["id_plataforma"]) || empty($body['id_plataforma'])) throw new Exception("La plataforma es obligatoria", 400);
+            /* if (!isset($body["descripcion"]) || empty($body['descripcion'])) throw new Exception("la descripcion es obligatoria", 400);
             if (!isset($body["nombre"]) || empty($body['nombre'])
-            ) throw new Exception("el nombre es obligatorio", 400);
-            if (isset($body["descripcion"]) && strlen($body["descripcion"]) > 255) throw new Exception("La descripcion debe de ser de menos de 255 caracteres", 400);
+            ) throw new Exception("el nombre es obligatorio", 400); */
+            if ((!isset($body["imagen"]))&&(!isset($body["nombre"]))&&(!isset($body["descripcion"]))&& (!isset($body["tipo_imagen"])&&(!isset($body["url"]))&& (!isset($body["id_genero"]))&& (!isset($body["id_plataforma"])))) throw new Exception("se debe recibir al menos un dato", 400);
+            if ((isset($body["descripcion"]))&&(strlen($body["descripcion"]) > 255)) throw new Exception("La descripcion debe de ser de menos de 255 caracteres", 400);
             if (isset($body["url"]) && strlen($body["url"]) > 88) throw new Exception("La url debe de ser de menos de 88 caracteres", 400);
-            if (!isset($body["imagen"]) || empty($body['imagen'])
+            if (isset($body["imagen"]) && empty($body['imagen'])
             ) throw new Exception("la imagen es obligatoria", 400);
-            if (!isset($body["tipo_imagen"]) || empty($body['tipo_imagen'])) throw new Exception("la tipo de imagen es obligatoria", 400);
-            if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) throw new Exception("El archivo no es un formato de imagen válido. Solo se permite 'jpg' y 'png'", 400);;
+            if (isset($body["tipo_imagen"]) && empty($body['tipo_imagen'])) throw new Exception("la tipo de imagen es obligatoria", 400);
+            if (isset($body["id_genero"]) && empty($body['id_genero'])) throw new Exception("la tipo de imagen es obligatoria", 400);
+            if (isset($body["id_genero"]) && !$db->existsIn('generos', $args['id_genero'])) throw new Exception("No se encontro el id Genero: '" . $args['id_genero'] . "'", 400);
+            if (isset($body["id_plataformas"]) && !$db->existsIn('plataformas', $args['id_genero'])) throw new Exception("No se encontro el id: '" . $args['id_genero'] . "'", 400);
+            if (isset($body["tipo_imagen"]) && !in_array($body['tipo_imagen'], ['jpg', 'png'])) throw new Exception("El archivo no es un formato de imagen válido. Solo se permite 'jpg' y 'png'", 400);;
 
             $query = "UPDATE juegos SET ";
             $bindings = [];
@@ -239,11 +248,14 @@ class JuegosController{
             $db->makeQuery($query, $bindings)->fetchAll();
             $response->getBody()->write("Validación exitosa, los campos cumplen los requisitos para la actualización...");
             return $response->withStatus(200);
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             $response->getBody()->write($e->getMessage());
             return $response->withStatus(404);
         }
     }
+
+    
     //*Eliminar (l)
     public function delete($request, $response, $args){
         $db = new DB();

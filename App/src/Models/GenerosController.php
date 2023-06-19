@@ -14,7 +14,10 @@ class GenerosController{
             if (count($generos) === 0) throw new Exception("No hay generos", 404);
             $response->getBody()->write(json_encode($generos));
             $db->close();
-            return $response->withStatus(200);
+            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            return $response->withHeader('content-type', 'application/json')->withStatus(200);
         } 
         catch (Exception $e) {
             $response->getBody()->write("Su solicitud arrojó un error: ");
@@ -47,6 +50,12 @@ class GenerosController{
             if (!isset($body['nombre'])) throw new Exception("No ingresó el nombre del genero a actualizar", 400);
             $db->makeQuery("UPDATE generos SET nombre = ? WHERE id = ?", [$body['nombre'], $args['id']]);
             $db->close();
+
+            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+
             $response->getBody()->write("Genero actualizado con éxito");
             return $response->withStatus(200);
         }
@@ -68,13 +77,20 @@ class GenerosController{
             $db->makeQuery("DELETE FROM generos WHERE id = ?", [$args['id']]);
             $db->close();
             $response->getBody()->write("Genero eliminado con éxito");
-            return $response;
+            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+   
+            return $response->withStatus(200);
         }
         catch (Exception $e) {
             $db->close();
-            $response->getBody()->write("Su solicitud arrojó un error: ");
-            $response->getBody()->write($e->getMessage());
-            return $response->withStatus(400);
+            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+            $response->getBody()->write("Su solicitud arrojó un error: " . $e->getMessage());
+            return $response->withStatus(404);
         }
     }
 }
