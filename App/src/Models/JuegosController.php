@@ -24,41 +24,38 @@ class JuegosController{
     }  
     //*buscar Juegos (m)
     public function juegos (Request $request, Response $response, $args){
-        /*
-        Esta función recibe un GET request con parámetros para buscar juego.
-        Es obligatorio que exista al menos uno de estos tres parámetros:
-            -genero(str).
-            -plataforma(str).
-            -nombre(str).
-        Es opcional el siguiente parámetro:
-            -orden(boolean): orden predefinido = ASC.
-        */
-
         $db = new DB();
         try {
             $genero = $request->getQueryParams()['genero'] ?? null;
             $nombre = $request->getQueryParams()['nombre'] ?? null;
-            $id_plataforma = $request->getQueryParams()['id_plataforma'] ?? null;
-            /* if ($genero === null || $id_plataforma === null || $nombre === null) throw new Exception("se debe dar un parametro (genero o id_plataforma o nombre)", 400); */
-            $asc = $request->getQueryParams()['asc']?? false;
-            $datos = [];
-            $query = "SELECT * FROM juegos WHERE 1=1 ";
-            if($genero != null){
-                $query.="AND id_genero = ?";
-                array_push($datos,$genero);
+            $id_plataforma = $request->getQueryParams()['plataforma'] ?? null;
+            $asc = $request->getQueryParams()['asc'] ?? false;
+            if($genero === null & $id_plataforma === null & $nombre === null & !$asc ){
+                $query = 'SELECT * FROM juegos';
+                $respuesta = $db->makeQuery($query)->fetchAll();
+                
             }
-            if($nombre != null){
-                $query .= " AND nombre like ?";
-                $nombre = "%".$nombre."%";
-                array_push($datos, $nombre);
+            else{
+                $datos = [];
+                $query = "SELECT * FROM juegos WHERE 1=1 ";
+                if($genero != null){
+                    $query.="AND id_genero = ?";
+                    array_push($datos,$genero);
+                }
+                if($nombre != null){
+                    $query .= " AND nombre like ?";
+                    $nombre = "%".$nombre."%";
+                    array_push($datos, $nombre);
+                }
+                if($id_plataforma!= null){
+                    $query.=" AND id_plataforma =?";
+                    array_push($datos, $id_plataforma);
+                }
+                if($asc)$query.=" ORDER BY nombre ASC ";
+                
+                $respuesta = $db->makeQuery($query, $datos)->fetchAll();
+                if(count($respuesta) === 0)throw new Exception("No se encontro el juego", 404);
             }
-            if($id_plataforma!= null){
-                $query.=" AND id_plataforma =?";
-                array_push($datos, $id_plataforma);
-            }
-            if($asc)$query.=" ORDER BY nombre ASC ";
-            $respuesta = $db->makeQuery($query, $datos)->fetchAll();
-            if(count($respuesta) === 0)throw new Exception("No se encontro el juego", 404);
             $response->getBody()->write(json_encode($respuesta));
             $db->close();
             $response = $response->withHeader('Access-Control-Allow-Origin', '*')
