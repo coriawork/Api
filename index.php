@@ -8,11 +8,10 @@ require 'vendor/autoload.php';
 require 'App/src/Models/DB.php';
 
 $app = AppFactory::create();
-
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: PUT,POST,DELETE,GET, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
+header('Content-Type: application/json');
 //endpoints Generos (ver -> README.md)
 $app->post('/generos', '\App\src\Models\GenerosController:create');
 $app->get('/generos','\App\src\Models\GenerosController:list');
