@@ -265,7 +265,7 @@ class JuegosController{
             if (!$db->existsIn('juegos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
             $db->makeQuery("DELETE FROM juegos WHERE id = ?", [$args['id']]);
             $db->close();
-            $response->getBody()->write("Plataforma eliminada con éxito");
+            $response->getBody()->write("Juego eliminado con éxito");
             return $response;
         }
         catch (Exception $e) {
