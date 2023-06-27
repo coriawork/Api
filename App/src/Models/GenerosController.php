@@ -15,7 +15,7 @@ class GenerosController{
             $response->getBody()->write(json_encode($generos));
             $db->close();
             $response = $response->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
             return $response->withHeader('content-type', 'application/json')->withStatus(200);
         } 
@@ -51,10 +51,10 @@ class GenerosController{
             $db->makeQuery("UPDATE generos SET nombre = ? WHERE id = ?", [$body['nombre'], $args['id']]);
             $db->close();
 
-            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
-                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            /* $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Allow-Methods', 'PUT, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
+ */
 
             $response->getBody()->write("Genero actualizado con éxito");
             return $response->withStatus(200);
@@ -77,9 +77,9 @@ class GenerosController{
             $db->makeQuery("DELETE FROM generos WHERE id = ?", [$args['id']]);
             $db->close();
             $response->getBody()->write("Genero eliminado con éxito");
-            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            /* $response = $response->withHeader('Access-Control-Allow-Origin', '*')
             ->withHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); */
    
             return $response->withStatus(200);
         }
