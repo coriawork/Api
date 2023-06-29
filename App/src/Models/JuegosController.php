@@ -124,7 +124,7 @@ class JuegosController{
                 array_push($errors, $err6);
                 $huboErr = true;
             }
-            if (!in_array($body['tipo_imagen'], ['jpg', 'png'])) {
+            if (!in_array($body['tipo_imagen'], ['jpg', 'jpeg', 'png'])) {
                 $err7 = "El tipo del archivo no es un formato de imagen válido";
                 array_push($errors, $err7);
                 $huboErr = true;
