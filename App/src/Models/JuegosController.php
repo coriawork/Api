@@ -179,7 +179,6 @@ class JuegosController{
                 $query_values = preg_replace('/,+(?=,|\s*\))/','',$query_values);                
                 $query_values = preg_replace('/,+/',',',$query_values);
                 $query = $query_fields . ' ' . $query_values;
-                echo($query);
                 $db->makeQuery($query,$params);
                 $response->getBody()->write("Juego creado con exito");
                 return $response->withStatus(200);
