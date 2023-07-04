@@ -19,7 +19,8 @@ class DB{
         
         try {
             $this->con = new \PDO($dsn, $this->user, $this->pass, $options);
-        } catch (\PDOException $e) {
+        } 
+        catch (\PDOException $e) {
             throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }
     }
