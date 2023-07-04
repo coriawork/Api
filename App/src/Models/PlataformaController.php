@@ -31,8 +31,8 @@ class PlataformasController{
     public function create(Request $request, Response $response, $args){
         $db = new DB();
         $body = json_decode($request->getBody(), true);
-        if (!isset($body['nombre'])) throw new Exception("Error: Campos vacíos");
         $nombre = $body['nombre'];
+        if (trim($nombre) === "") throw new Exception("El nombre de la plataforma no puede ser un campo vacio", 400);
         $db->makeQuery("INSERT INTO plataformas (nombre) VALUES (?)", [$nombre]);
         $db->close();
         $response->getBody()->write("Plataforma $nombre creada con éxito");
@@ -74,8 +74,8 @@ class PlataformasController{
         }
         catch (Exception $e) {
             $db->close();
-            $response->getBody()->write("Su solicitud arrojó un error. No se puede eliminar una plataforma que está siendo utilizada por un juego: ");
-            $response->getBody()->write($e->getMessage());
+            $response->getBody()->write("No se puede eliminar una plataforma que está siendo utilizada por un juego: ");
+            /*$response->getBody()->write($e->getMessage());*/
             return $response->withStatus(404);
         }
     }

@@ -73,6 +73,7 @@ class GenerosController{
         try {
             if (!isset($args['id'])) throw new Exception("No se recibió el id", 400);
             if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
+            $body = json_decode($request->getBody(), true);
             if (!$db->existsIn('generos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
             $db->makeQuery("DELETE FROM generos WHERE id = ?", [$args['id']]);
             $db->close();
