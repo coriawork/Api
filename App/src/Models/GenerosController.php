@@ -88,8 +88,7 @@ class GenerosController{
             $response = $response->withHeader('Access-Control-Allow-Origin', '*')
             ->withHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-            $response->getBody()->write("Su solicitud arrojó un error: " . $e->getMessage());
+            $response->getBody()->write("Su solicitud arrojó un error. No se puede eliminar un genero que está siendo utilizado por un juego: " . $e->getMessage());
             return $response->withStatus(404);
         }
     }

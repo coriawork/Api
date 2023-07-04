@@ -74,9 +74,9 @@ class PlataformasController{
         }
         catch (Exception $e) {
             $db->close();
-            $response->getBody()->write("Su solicitud arrojó un error: ");
+            $response->getBody()->write("Su solicitud arrojó un error. No se puede eliminar una plataforma que está siendo utilizada por un juego: ");
             $response->getBody()->write($e->getMessage());
-            return $response->withStatus(400);
+            return $response->withStatus(404);
         }
     }
 }
