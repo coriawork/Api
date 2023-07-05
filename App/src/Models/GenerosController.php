@@ -14,9 +14,9 @@ class GenerosController{
             if (count($generos) === 0) throw new Exception("No hay generos", 404);
             $response->getBody()->write(json_encode($generos));
             $db->close();
-            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            /*$response = $response->withHeader('Access-Control-Allow-Origin', '*')
             ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');*/
             return $response->withHeader('content-type', 'application/json')->withStatus(200);
         } 
         catch (Exception $e) {
@@ -86,10 +86,10 @@ class GenerosController{
         }
         catch (Exception $e) {
             $db->close();
-            $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            /*$response = $response->withHeader('Access-Control-Allow-Origin', '*')
             ->withHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-            $response->getBody()->write("Su solicitud arrojó un error. No se puede eliminar un genero que está siendo utilizado por un juego: " . $e->getMessage());
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');*/
+            $response->getBody()->write("No se puede eliminar un genero que está siendo utilizado por un juego.");
             return $response->withStatus(404);
         }
     }

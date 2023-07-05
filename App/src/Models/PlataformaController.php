@@ -14,9 +14,10 @@ class PlataformasController{
             if (count($plataformas) === 0) throw new Exception("No hay plataformas", 404);
             $response->getBody()->write(json_encode($plataformas));
             $db->close();
+            /*
             $response = $response->withHeader('Access-Control-Allow-Origin', '*')
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');*/
             return $response->withHeader('content-type', 'application/json')->withStatus(200);
         } 
         catch (Exception $e) {
@@ -74,7 +75,7 @@ class PlataformasController{
         }
         catch (Exception $e) {
             $db->close();
-            $response->getBody()->write("No se puede eliminar una plataforma que está siendo utilizada por un juego: ");
+            $response->getBody()->write("No se puede eliminar una plataforma que está siendo utilizada por un juego.");
             /*$response->getBody()->write($e->getMessage());*/
             return $response->withStatus(404);
         }
