@@ -1,66 +1,96 @@
 <?php
 namespace App\src\Models;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use App\src\Models\DB;
 use Exception;
 
 class GenerosController{
-    //*post 201 si se creo bien
-
-    //* crea un genero (a)
-    public function create($request, $response, $args){
+    //* todos los generos (d) --> ver README.md
+    public function list(Request $request, Response $response, $args){
         $db = new DB();
-        $nombre = json_decode($request->getBody(), true)['nombre'];
-        $db->makeQuery("INSERT INTO generos (nombre) VALUES ('" . $nombre . "')");
+        try {
+            $generos = $db->makeQuery('SELECT * FROM generos')->fetchAll();
+            if (count($generos) === 0) throw new Exception("No hay generos", 404);
+            $response->getBody()->write(json_encode($generos));
+            $db->close();
+            /*$response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');*/
+            return $response->withHeader('content-type', 'application/json')->withStatus(200);
+        } 
+        catch (Exception $e) {
+            $response->getBody()->write("Su solicitud arrojó un error: ");
+            $response->getBody()->write($e->getMessage());
+            $db->close();
+            return $response->withStatus(404);
+        }
+    }
+
+    //* crea un genero (a) --> ver README.md
+    public function create(Request $request, Response $response, $args){
+        $db = new DB();
+        $body = json_decode($request->getBody(), true);
+        if (!isset($body['nombre'])) throw new Exception("Error: Campos vacíos");
+        $nombre = $body['nombre'];
+        $db->makeQuery("INSERT INTO generos (nombre) VALUES (?)", [$nombre]);
+        $db->close();
+        $response->getBody()->write("Genero $nombre creado con éxito");
         return $response->withStatus(200);
     }
 
-    //* actualizar genero con id (b)
-    public function update($request, $response, $args){
+    //* actualizar genero con id (b) --> ver README.md
+    public function update(Request $request, Response $response, $args){
         $db = new DB();
-        try{
-            if (!is_numeric($args['id'])) throw new Exception("el id debe ser numerico", 400);
-            if (!isset($args['id'])) throw new Exception("no se recibio el id para hacer el uptdate", 400);
-            if (!$db->ExistIn('Generos', $args['id'])) throw new Exception("No se encontro el id: '" . $args['id'] . "'", 404);
-
+        try {
+            if (!isset($args['id'])) throw new Exception("No se recibió el id para hacer el update", 400);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
+            if (!$db->existsIn('generos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
             $body = json_decode($request->getBody(), true);
-            if(!isset($body['nombre']))throw new Exception("no se recibio el parametro para update", 400);
+            if (!isset($body['nombre'])) throw new Exception("No ingresó el nombre del genero a actualizar", 400);
+            $db->makeQuery("UPDATE generos SET nombre = ? WHERE id = ?", [$body['nombre'], $args['id']]);
+            $db->close();
+
+            /* $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Allow-Methods', 'PUT, OPTIONS')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+ */
+
+            $response->getBody()->write("Genero actualizado con éxito");
             return $response->withStatus(200);
         }
-        catch(Exception $e){
+        catch (Exception $e) {
+            $db->close();
+            $response->getBody()->write("Su solicitud arrojó un error: ");
             $response->getBody()->write($e->getMessage());
             return $response->withStatus($e->getCode());
         }
     }
-    //*delete (c)
-    public function delete($request, $response, $args){
-        $db = new DB();
-        try{
-            $body = json_decode($request->getBody(), true);
-            $result = $db->makeQuery("SELECT * from generos where id = '" . $body['id'] . "'");
-            if($result->num_rows === 0) throw new Exception("No existe el id", 400);
-            if (!isset($body['id'])) throw new Exception("No se recibio el id", 400);
-            $result = $db->makeQuery("DELETE FROM generos where id = '".$body['id']."'");
-            return $response;
-        }
-        catch(Exception $e){
-            $response->getBody()->write($e->getMessage());
-            return $response->withStatus(400);
-        }
-    }
-    //* todos los generos (d)
-    public function list($request, $response, $args){
+    
+    //* delete (c)
+    public function delete(Request $request, Response $response, $args){
         $db = new DB();
         try {
-            $generos = $db->makeQuery('SELECT * FROM generos')->fetch_all(MYSQLI_ASSOC);
-            //*forma de enviar las exepciones
-            if (sizeof($generos) === 0)throw new Exception("No hay generos", 404);
-            $response->getBody()->write(json_encode($generos));
+            if (!isset($args['id'])) throw new Exception("No se recibió el id", 400);
+            if (!is_numeric($args['id'])) throw new Exception("El id debe ser numérico", 400);
+            $body = json_decode($request->getBody(), true);
+            if (!$db->existsIn('generos', $args['id'])) throw new Exception("No se encontró el id: '" . $args['id'] . "'", 404);
+            $db->makeQuery("DELETE FROM generos WHERE id = ?", [$args['id']]);
+            $db->close();
+            $response->getBody()->write("Genero eliminado con éxito");
+            /* $response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); */
+   
             return $response->withStatus(200);
-        } catch (Exception $e) {
-            $response->getBody()->write($e->getMessage());
+        }
+        catch (Exception $e) {
+            $db->close();
+            /*$response = $response->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');*/
+            $response->getBody()->write("No se puede eliminar un genero que está siendo utilizado por un juego.");
             return $response->withStatus(404);
         }
-        //todo: catch pdo exception para la conexion de la base de datos
     }
 }
-?>    
